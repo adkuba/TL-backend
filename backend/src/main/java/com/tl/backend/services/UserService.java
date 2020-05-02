@@ -1,5 +1,10 @@
 package com.tl.backend.services;
 
+import com.tl.backend.entities.User;
+
 public interface UserService {
-    //napisac jakies funkce
+
+    User saveUser(User user);
+
+    void deleteByUserId(String id);
 }
