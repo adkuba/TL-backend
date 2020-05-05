@@ -1,6 +1,7 @@
 package com.tl.backend.controllers;
 
 import com.tl.backend.entities.Timeline;
+import com.tl.backend.entities.User;
 import com.tl.backend.services.TimelineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,8 +36,8 @@ public class TimelineController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Optional<Timeline> listTimeline(@RequestParam("id") String id){
-        return timelineService.getByTimelineId(id);
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public Timeline getTimelineByUsername(@RequestParam String username){
+        return timelineService.getTimelineByUsername(username);
     }
 }

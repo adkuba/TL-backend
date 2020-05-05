@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @RestController
 @RequestMapping("/events")
@@ -34,8 +35,8 @@ public class EventController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping(value = "/list", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Iterable<Event> listEvents(){
-        return eventService.listAllEvents();
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<Event> getEventsByTimelineId(@RequestParam String timelineId){
+        return eventService.getEventsByTimelineId(timelineId);
     }
 }

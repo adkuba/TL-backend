@@ -5,6 +5,9 @@ import com.tl.backend.repositories.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class EventServiceImpl implements EventService {
 
@@ -15,9 +18,17 @@ public class EventServiceImpl implements EventService {
         this.eventRepository = eventRepository;
     }
 
+
     @Override
-    public Iterable<Event> listAllEvents() {
-        return eventRepository.findAll();
+    public List<Event> getEventsByTimelineId(String timelineId) {
+        List<Event> events = new ArrayList<>();
+        List<Event> allEvents = eventRepository.findAll();
+        for(Event event : allEvents){
+            if(event.getTimeline().getId().equals(timelineId)){
+                events.add(event);
+            }
+        }
+        return events;
     }
 
     @Override

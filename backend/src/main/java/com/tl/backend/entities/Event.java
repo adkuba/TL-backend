@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Document(collection = "events")
 @Data
@@ -19,7 +19,9 @@ public class Event {
 
     private Timeline timeline;
 
+    private String shortDescription;
+
     private String description;
 
-    private Date date;
+    private LocalDateTime date;
 }

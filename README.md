@@ -1,11 +1,19 @@
 # TL-backend
 Backend do strony timeline.
 
-## Budowa systemu
-Lista tabel:
-- user: id, username, password, email
-- timeline: id, user, event
-- event: id, title, timeline, description, date
+## Api
+Zrobic osobne wiki!
+- Users
+  - new user
+  - delete user
+- Timelines
+  - new timeline
+  - delete timeline
+  - get timeline by username - pobiera glowna os usera
+- Events
+  - new event
+  - delete event
+  - get events by timeline id - pobiera eventy w danym timeline
 
 ## Opis
 Pliki:
@@ -25,7 +33,6 @@ Pliki:
 Mozna dodac:
 - indeksowanie do np username - usprawnia wykonywanie queries, uwaga trzeba cos zmieniec w config mongo,
 - pattern do emaila - zeby odrzucal zle emaile
-- zmienic w events z listAllEvents na np list by timeline
 
 Uruchamianie:
 - uwaga w entities robic @Collection, a nie @Collation!!!
