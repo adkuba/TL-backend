@@ -1,44 +1,27 @@
 # TL-backend
 Backend do strony timeline.
 
-## Api
-Zrobic osobne wiki!
-- Users
-  - new user
-  - delete user
-- Timelines
-  - new timeline
-  - delete timeline
-  - get timeline by username - pobiera glowna os usera
-- Events
-  - new event
-  - delete event
-  - get events by timeline id - pobiera eventy w danym timeline
+## Uruchomienie
+Musi dzialac mongodb <code>sudo systemctl start mongod</code> uwaga przy pierwszym uruchomieniu trzeba stworzyc usera admin. Do zapytan REST uzywac Postmana, do przegladania bazy danych Mongodb Compass, glowny projekt w Intellij.
 
-## Opis
-Pliki:
-- User.java:
-  - @Data robi getery setery - lombok,
-  - @NoArgsConstruktor - tworzy konstruktor bez argumentow,
-  - @Document - okresla tabele(dokumenty) w mongo.
-- DataStartupService.java:
-  - plik tworzy przykladowe dane przy uruchomieniu serwera - @EventListener
-  - przy robieniu entities np usera to nie trzeba podawac id, stworzy sie samo
-- SecurityConfig.java:
-  - tez wazne przy uruchomieniu bo np mialem problem z uprawnieniami do DELETE
-  - uwaga, mam ustawione ze kazdy ma dostep do wszystkiego!
-  
-  
-## Uwagi
-Mozna dodac:
-- indeksowanie do np username - usprawnia wykonywanie queries, uwaga trzeba cos zmieniec w config mongo,
-- pattern do emaila - zeby odrzucal zle emaile
+## Co to jest?
+Strona umozliwiajaca stworzenie wlasnego portfolio, na podstawie zrealizowanych projektow. <br>
 
-Uruchamianie:
-- uwaga w entities robic @Collection, a nie @Collation!!!
-- uruchamienie mongo <code>sudo systemctl start mongod</code>
-- przy pierwszym uruchomieniu mongo trzeba stworzyc nowego usera admin
+Istniejące rozwiązania:
+- kreatory stron takie jak WordPress - strony dostosowane do twoich potrzeb
+- kreatory osi czasu - do robienia timeline np przy projektach itd.
+- portale z ogłoszeniami pracy linkedin 
 
-Skladnia:
-- @Valid - sprawdzanie czy wprowadzane dane sa odpowiednie do np. doadania do bazy,
-- @Autowired - wstrzykiwanie obiektow
+Główne cechy mojej strony:
+- oparta na jednym szablonie dla wszystkich - oś czasu na której dodajemy projekty.
+- w punktach które dodajemy na oś może być JEDNA dodatkowa oś czasu - sa to szczegóły w danym projekcie
+- unifikacja, to co wyróżnia strony użytkowników to tylko treść - czyli nasze zrealizowane projekty
+- wyszukiwarka po kategoriach np. informatyka, zdjęcia
+
+Wyróżniki od istniejących rozwiązań
+- Kreatory stron - u mnie będzie unifikacja strony - przejrzystość
+- Kreatory osi czasu - u mnie focus na ładnie wyglądające portfolio i realizowane projekty
+- ogłoszenia pracy - u mnie nie ma ogłoszeń tylko w klarowny sposób prezentują się osoby
+
+Dodatkowe pomysły:
+- możliwość tworzenia backupu podawanych stron?
