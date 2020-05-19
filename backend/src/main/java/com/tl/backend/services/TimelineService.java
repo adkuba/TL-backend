@@ -7,8 +7,9 @@ import java.util.Optional;
 
 public interface TimelineService {
 
-    //pobiera glowny timeline usera
-    Timeline getTimelineByUsername(String username);
+    Optional<Timeline> getTimelineById(String id);
+
+    Timeline getTimelineByEventId(String eventId);
 
     Timeline saveTimeline(Timeline timeline);
 

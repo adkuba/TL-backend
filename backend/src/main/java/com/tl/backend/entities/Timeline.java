@@ -15,5 +15,9 @@ public class Timeline {
 
     private User user;
 
+    private String description;
+
+    private String descriptionTitle;
+
     private Event event;
 }

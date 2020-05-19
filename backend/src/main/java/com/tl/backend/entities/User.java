@@ -1,6 +1,7 @@
 package com.tl.backend.entities;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -15,13 +16,14 @@ import javax.validation.constraints.NotNull;
 public class User {
 
     @Id
-    private String id;
-
     private String username;
+
+    private String fullName;
 
     private String email;
 
     @NotNull
+    @JsonIgnore
     private String password;
 
 }

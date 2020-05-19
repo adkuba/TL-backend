@@ -37,7 +37,12 @@ public class TimelineController {
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public Timeline getTimelineByUsername(@RequestParam String username){
-        return timelineService.getTimelineByUsername(username);
+    public Optional<Timeline> getTimelineById(@RequestParam String id){
+        return timelineService.getTimelineById(id);
+    }
+
+    @GetMapping(value = "/event", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Timeline getTimelineByEventId(@RequestParam String eventId){
+        return timelineService.getTimelineByEventId(eventId);
     }
 }

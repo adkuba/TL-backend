@@ -20,11 +20,18 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     @Override
-    public Timeline getTimelineByUsername(String username) {
+    public Optional<Timeline> getTimelineById(String id) {
+        return timelineRepository.findById(id);
+    }
+
+    @Override
+    public Timeline getTimelineByEventId(String eventId) {
         List<Timeline> timelines = timelineRepository.findAll();
-        for(Timeline timeline : timelines){
-            if (timeline.getUser().getUsername().equals(username)){
-                return timeline;
+        for (Timeline timeline : timelines){
+            if (timeline.getEvent() != null) {
+                if (timeline.getEvent().getId().equals(eventId)){
+                    return timeline;
+                }
             }
         }
         return null;
