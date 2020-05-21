@@ -1,23 +1,16 @@
-package com.tl.backend.entities;
+package com.tl.backend.models;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "timelines")
+@Document(collection = "roles")
 @Data
 @NoArgsConstructor
-public class Timeline {
-
+public class Role {
     @Id
     private String id;
 
-    private User user;
-
-    private String description;
-
-    private String descriptionTitle;
-
-    private Event event;
+    private ERole name;
 }

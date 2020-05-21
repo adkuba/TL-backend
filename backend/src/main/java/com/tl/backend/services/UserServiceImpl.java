@@ -1,6 +1,6 @@
 package com.tl.backend.services;
 
-import com.tl.backend.entities.User;
+import com.tl.backend.models.User;
 import com.tl.backend.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

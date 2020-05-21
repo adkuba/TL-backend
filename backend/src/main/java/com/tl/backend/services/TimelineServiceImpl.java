@@ -1,7 +1,6 @@
 package com.tl.backend.services;
 
-import com.tl.backend.entities.Timeline;
-import com.tl.backend.entities.User;
+import com.tl.backend.models.Timeline;
 import com.tl.backend.repositories.TimelineRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

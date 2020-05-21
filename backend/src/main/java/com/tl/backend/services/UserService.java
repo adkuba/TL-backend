@@ -1,6 +1,6 @@
 package com.tl.backend.services;
 
-import com.tl.backend.entities.User;
+import com.tl.backend.models.User;
 
 public interface UserService {
 

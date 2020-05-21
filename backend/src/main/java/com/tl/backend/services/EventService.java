@@ -1,6 +1,6 @@
 package com.tl.backend.services;
 
-import com.tl.backend.entities.Event;
+import com.tl.backend.models.Event;
 
 import java.util.List;
 

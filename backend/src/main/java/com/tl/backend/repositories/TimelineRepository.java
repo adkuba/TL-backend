@@ -1,6 +1,6 @@
 package com.tl.backend.repositories;
 
-import com.tl.backend.entities.Timeline;
+import com.tl.backend.models.Timeline;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 

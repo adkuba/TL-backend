@@ -1,19 +1,21 @@
 package com.tl.backend.services;
 
-import com.tl.backend.entities.Event;
-import com.tl.backend.entities.Timeline;
-import com.tl.backend.entities.User;
+import com.tl.backend.models.*;
 import com.tl.backend.repositories.EventRepository;
+import com.tl.backend.repositories.RoleRepository;
 import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 public class DataStartupService {
@@ -21,22 +23,37 @@ public class DataStartupService {
     private final UserRepository userRepository;
     private final TimelineRepository timelineRepository;
     private final EventRepository eventRepository;
+    private final RoleRepository roleRepository;
 
     @Autowired
-    public DataStartupService(UserRepository userRepository, TimelineRepository timelineRepository, EventRepository eventRepository){
+    PasswordEncoder encoder;
+
+    @Autowired
+    public DataStartupService(UserRepository userRepository, TimelineRepository timelineRepository, EventRepository eventRepository, RoleRepository roleRepository){
         this.userRepository = userRepository;
         this.timelineRepository = timelineRepository;
         this.eventRepository = eventRepository;
+        this.roleRepository = roleRepository;
     }
 
     private void createMe(){
         String lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida dui feugiat risus vehicula, vel placerat velit auctor. Sed lobortis tellus ut ullamcorper sagittis. Duis eget aliquam metus, ac sodales nunc. Integer imperdiet feugiat feugiat. Sed vel auctor nisi. Suspendisse potenti. Donec tellus velit, fringilla ac orci vitae, rhoncus placerat lacus. Integer in dictum nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum a risus nec eros pretium rhoncus. Integer a dignissim urna. Duis tempus odio eu elit consequat, eget placerat tortor sodales. Nulla finibus, nisi sed pellentesque laoreet, purus orci tincidunt sem, sit amet egestas sem dui in lorem.";
 
+        Role admin = new Role();
+        admin.setName(ERole.ROLE_ADMIN);
+        roleRepository.save(admin);
+        Role userR = new Role();
+        userR.setName(ERole.ROLE_USER);
+        roleRepository.save(userR);
+
         User kuba = new User();
         kuba.setFullName("Jakub Adamski");
         kuba.setEmail("akuba@exemplum.pl");
         kuba.setUsername("akuba");
-        kuba.setPassword("funia");
+        kuba.setPassword(encoder.encode("funia"));
+        Set<Role> roles = new HashSet<>();
+        roles.add(admin);
+        kuba.setRoles(roles);
         userRepository.save(kuba);
 
         Timeline timeline = new Timeline();

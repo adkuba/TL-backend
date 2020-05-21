@@ -1,6 +1,6 @@
 package com.tl.backend.services;
 
-import com.tl.backend.entities.Event;
+import com.tl.backend.models.Event;
 import com.tl.backend.repositories.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

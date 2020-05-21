@@ -1,10 +1,11 @@
 package com.tl.backend.controllers;
 
-import com.tl.backend.entities.User;
+import com.tl.backend.models.User;
 import com.tl.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -28,6 +29,7 @@ public class UserController {
     }
 
     @DeleteMapping(value = "/{id}")
+    //@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable String id){
         userService.deleteByUserId(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

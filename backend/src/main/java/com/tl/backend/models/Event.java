@@ -1,4 +1,4 @@
-package com.tl.backend.entities;
+package com.tl.backend.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;

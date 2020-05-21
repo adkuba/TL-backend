@@ -1,6 +1,6 @@
 package com.tl.backend.controllers;
 
-import com.tl.backend.entities.Event;
+import com.tl.backend.models.Event;
 import com.tl.backend.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
