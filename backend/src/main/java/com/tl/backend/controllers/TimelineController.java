@@ -13,7 +13,7 @@ import javax.validation.constraints.NotNull;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/timelines")
+@RequestMapping("/api/timelines")
 public class TimelineController {
 
     private final TimelineService timelineService;
@@ -35,12 +35,12 @@ public class TimelineController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value ="/public", produces = MediaType.APPLICATION_JSON_VALUE)
     public Optional<Timeline> getTimelineById(@RequestParam String id){
         return timelineService.getTimelineById(id);
     }
 
-    @GetMapping(value = "/event", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/public/event", produces = MediaType.APPLICATION_JSON_VALUE)
     public Timeline getTimelineByEventId(@RequestParam String eventId){
         return timelineService.getTimelineByEventId(eventId);
     }

@@ -13,7 +13,7 @@ import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @RestController
-@RequestMapping("/events")
+@RequestMapping("/api/events")
 public class EventController {
 
     private final EventService eventService;
@@ -35,7 +35,7 @@ public class EventController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/public", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<Event> getEventsByTimelineId(@RequestParam String timelineId){
         return eventService.getEventsByTimelineId(timelineId);
     }
