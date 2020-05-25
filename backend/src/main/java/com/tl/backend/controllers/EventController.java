@@ -1,12 +1,14 @@
 package com.tl.backend.controllers;
 
 import com.tl.backend.models.Event;
+import com.tl.backend.models.EventsMapper;
 import com.tl.backend.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -17,15 +19,23 @@ import java.util.List;
 public class EventController {
 
     private final EventService eventService;
+    private final EventsMapper eventsMapper;
 
     @Autowired
-    public EventController(EventService eventService){
+    public EventController(EventService eventService, EventsMapper eventsMapper){
         this.eventService = eventService;
+        this.eventsMapper = eventsMapper;
     }
 
     @PostMapping(consumes = {"application/json"})
     public ResponseEntity<Event> createEvent(@RequestBody @Valid @NotNull Event event){
         eventService.saveEvent(event);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PostMapping(value = "/{id}/logo", consumes = {"multipart/form-data"})
+    public ResponseEntity<?> addPicture(@PathVariable String id, @Valid @NotNull @RequestParam MultipartFile picture){
+        eventService.setPicture(id, picture);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -36,7 +46,8 @@ public class EventController {
     }
 
     @GetMapping(value = "/public", produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<Event> getEventsByTimelineId(@RequestParam String timelineId){
-        return eventService.getEventsByTimelineId(timelineId);
+    public ResponseEntity<?> getEventsByTimelineId(@RequestParam String timelineId){
+        List<Event> events = eventService.getEventsByTimelineId(timelineId);
+        return ResponseEntity.ok(eventsMapper.eventResponse(events));
     }
 }

@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "tl.filesystem.root")
 public class FileStoreProperties {
 
-    private String path = "./files";
+    private String path = "files/";
 
     public String getPath() {
         return path;
