@@ -39,12 +39,15 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Event setPicture(String id, MultipartFile picture){
+    public Event setPictures(String id, List<MultipartFile> pictures){
         Optional<Event> opPicEvent = eventRepository.findById(id);
         if (opPicEvent.isPresent()){
             Event picEvent = opPicEvent.get();
-            FileResource fileResource = fileService.saveFileResource(picture);
-            picEvent.setPicture(fileResource);
+            List<FileResource> fileResources = new ArrayList<>();
+            for (MultipartFile picture : pictures){
+                fileResources.add(fileService.saveFileResource(picture));
+            }
+            picEvent.setPictures(fileResources);
             return eventRepository.save(picEvent);
         }
         return null;

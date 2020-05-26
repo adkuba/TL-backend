@@ -1,7 +1,7 @@
 package com.tl.backend.controllers;
 
 import com.tl.backend.models.Event;
-import com.tl.backend.models.EventsMapper;
+import com.tl.backend.mappers.EventsMapper;
 import com.tl.backend.services.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,14 +29,14 @@ public class EventController {
 
     @PostMapping(consumes = {"application/json"})
     public ResponseEntity<Event> createEvent(@RequestBody @Valid @NotNull Event event){
-        eventService.saveEvent(event);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        Event createdEvent = eventService.saveEvent(event);
+        return new ResponseEntity<>(createdEvent, HttpStatus.CREATED);
     }
 
-    @PostMapping(value = "/{id}/logo", consumes = {"multipart/form-data"})
-    public ResponseEntity<?> addPicture(@PathVariable String id, @Valid @NotNull @RequestParam MultipartFile picture){
-        eventService.setPicture(id, picture);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    @PostMapping(value = "/{id}/pictures", consumes = {"multipart/form-data"})
+    public ResponseEntity<?> addPictures(@PathVariable String id, @Valid @NotNull @RequestParam List<MultipartFile> pictures){
+        Event picEvent = eventService.setPictures(id, pictures);
+        return new ResponseEntity<>(picEvent, HttpStatus.CREATED);
     }
 
     @DeleteMapping(value = "/{id}")

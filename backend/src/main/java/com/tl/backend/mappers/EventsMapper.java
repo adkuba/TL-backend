@@ -1,6 +1,7 @@
-package com.tl.backend.models;
+package com.tl.backend.mappers;
 
-import com.tl.backend.fileHandling.FileResourceMapper;
+import com.tl.backend.models.Event;
+import com.tl.backend.response.EventResponse;
 import org.mapstruct.*;
 
 import java.util.List;

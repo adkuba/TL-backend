@@ -1,10 +1,14 @@
 package com.tl.backend.services;
 
+import com.tl.backend.fileHandling.FileResource;
+import com.tl.backend.fileHandling.FileServiceImpl;
 import com.tl.backend.models.Timeline;
 import com.tl.backend.repositories.TimelineRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,10 +16,12 @@ import java.util.Optional;
 public class TimelineServiceImpl implements TimelineService {
 
     private final TimelineRepository timelineRepository;
+    private final FileServiceImpl fileService;
 
     @Autowired
-    public TimelineServiceImpl(TimelineRepository timelineRepository){
+    public TimelineServiceImpl(TimelineRepository timelineRepository, FileServiceImpl fileService){
         this.timelineRepository = timelineRepository;
+        this.fileService = fileService;
     }
 
     @Override
@@ -44,5 +50,20 @@ public class TimelineServiceImpl implements TimelineService {
     @Override
     public void deleteByTimelineId(String id) {
         timelineRepository.deleteById(id);
+    }
+
+    @Override
+    public Timeline setPictures(String id, List<MultipartFile> multipartFiles) {
+        Optional<Timeline> optionalTimeline = timelineRepository.findById(id);
+        if (optionalTimeline.isPresent()){
+            Timeline timeline = optionalTimeline.get();
+            List<FileResource> fileResources = new ArrayList<>();
+            for (MultipartFile file : multipartFiles){
+                fileResources.add(fileService.saveFileResource(file));
+            }
+            timeline.setPictures(fileResources);
+            return timelineRepository.save(timeline);
+        }
+        return null;
     }
 }

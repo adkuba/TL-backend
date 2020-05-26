@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 
 @Document(collection = "events")
 @Data
@@ -28,7 +29,7 @@ public class Event {
 
     private HashMap<String, String> links;
 
-    private FileResource picture;
+    private List<FileResource> pictures;
 
     private LocalDateTime date;
 }

@@ -1,15 +1,18 @@
 package com.tl.backend.controllers;
 
 import com.tl.backend.models.Timeline;
+import com.tl.backend.mappers.TimelineMapper;
 import com.tl.backend.services.TimelineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -17,16 +20,24 @@ import java.util.Optional;
 public class TimelineController {
 
     private final TimelineService timelineService;
+    private final TimelineMapper timelineMapper;
 
     @Autowired
-    public TimelineController(TimelineService timelineService){
+    public TimelineController(TimelineService timelineService, TimelineMapper timelineMapper){
         this.timelineService = timelineService;
+        this.timelineMapper = timelineMapper;
     }
 
     @PostMapping(consumes = {"application/json"})
     public ResponseEntity<Timeline> createTimeline(@RequestBody @Valid @NotNull Timeline timeline){
-        timelineService.saveTimeline(timeline);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        Timeline createdTimeline = timelineService.saveTimeline(timeline);
+        return new ResponseEntity<>(createdTimeline, HttpStatus.CREATED);
+    }
+
+    @PostMapping(value = "/{id}/pictures", consumes = {"multipart/form-data"})
+    public ResponseEntity<?> addPictures(@PathVariable String id, @Valid @NotNull @RequestParam List<MultipartFile> pictures){
+        Timeline picTimeline = timelineService.setPictures(id, pictures);
+        return new ResponseEntity<>(picTimeline, HttpStatus.CREATED);
     }
 
     @DeleteMapping(value = "/{id}")
@@ -36,12 +47,20 @@ public class TimelineController {
     }
 
     @GetMapping(value ="/public", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Optional<Timeline> getTimelineById(@RequestParam String id){
-        return timelineService.getTimelineById(id);
+    public ResponseEntity<?> getTimelineById(@RequestParam String id){
+        Optional<Timeline> optionalTimeline = timelineService.getTimelineById(id);
+        if (optionalTimeline.isPresent()){
+            return ResponseEntity.ok(timelineMapper.timelineResponse(optionalTimeline.get()));
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping(value = "/public/event", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Timeline getTimelineByEventId(@RequestParam String eventId){
-        return timelineService.getTimelineByEventId(eventId);
+    public ResponseEntity<?> getTimelineByEventId(@RequestParam String eventId){
+        Timeline timeline = timelineService.getTimelineByEventId(eventId);
+        if (timeline == null){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return ResponseEntity.ok(timelineMapper.timelineResponse(timeline));
     }
 }

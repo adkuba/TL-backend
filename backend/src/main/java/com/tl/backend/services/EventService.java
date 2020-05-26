@@ -13,5 +13,5 @@ public interface EventService {
 
     void deleteByEventId(String id);
 
-    public Event setPicture(String id, MultipartFile picture);
+    Event setPictures(String id, List<MultipartFile> picture);
 }

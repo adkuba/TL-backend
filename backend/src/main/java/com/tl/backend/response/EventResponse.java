@@ -1,4 +1,4 @@
-package com.tl.backend.models;
+package com.tl.backend.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -18,6 +19,6 @@ public class EventResponse implements Serializable {
     private String shortDescription;
     private String description;
     private HashMap<String, String> links;
-    private URL picture;
+    private List<URL> pictures;
     private LocalDateTime date;
 }
