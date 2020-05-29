@@ -25,6 +25,8 @@ public class User {
 
     private String fullName;
 
+    private String refreshToken;
+
     private String email;
 
     @NotNull

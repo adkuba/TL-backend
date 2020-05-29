@@ -9,4 +9,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "tl.config")
 public class AppProperties {
     private String apiDomain;
+    private String domain;
 }

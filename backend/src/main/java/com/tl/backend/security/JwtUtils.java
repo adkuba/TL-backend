@@ -38,6 +38,18 @@ public class JwtUtils {
                 .compact();
     }
 
+    public String refreshJwtToken(String username){
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+        Key key = Keys.hmacShaKeyFor(keyBytes);
+        return Jwts.builder()
+                .setSubject((username))
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+
+    }
+
     public String getUserNameFromJwtToken(String token) {
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
     }

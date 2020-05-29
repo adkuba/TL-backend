@@ -1,5 +1,6 @@
 package com.tl.backend.controllers;
 
+import com.tl.backend.config.AppProperties;
 import com.tl.backend.models.ERole;
 import com.tl.backend.models.Role;
 import com.tl.backend.models.User;
@@ -12,6 +13,7 @@ import com.tl.backend.response.MessageResponse;
 import com.tl.backend.security.JwtUtils;
 import com.tl.backend.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,36 +25,66 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.util.WebUtils;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    @Autowired
-    AuthenticationManager authenticationManager;
+
+    private final AppProperties appProperties;
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder encoder;
+    private final JwtUtils jwtUtils;
 
     @Autowired
-    UserRepository userRepository;
+    public AuthController(AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
+        this.appProperties = appProperties;
+        this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.encoder = encoder;
+        this.jwtUtils = jwtUtils;
+    }
 
-    @Autowired
-    RoleRepository roleRepository;
+    private String refreshUserToken(String email){
+        User requestedUser = userRepository.findUserByEmail(email).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"user does not exist")
+        );
+        UUID refresh_token = UUID.randomUUID();
+        requestedUser.setRefreshToken(refresh_token.toString());
+        userRepository.save(requestedUser);
 
-    @Autowired
-    PasswordEncoder encoder;
+        return refresh_token.toString();
+    }
 
-    @Autowired
-    JwtUtils jwtUtils;
+    private Cookie createCookie(String name, String value, Boolean httpOnly){
+        Cookie cookie = null;
+        cookie = new Cookie(name, URLEncoder.encode(value, StandardCharsets.UTF_8));
+        cookie.setDomain(appProperties.getDomain());
+        cookie.setHttpOnly(httpOnly);
+        cookie.setMaxAge(60*60*24*30);
+        cookie.setPath("/");
+
+        return cookie;
+    }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        //logowanie
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
@@ -62,11 +94,36 @@ public class AuthController {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
+        //refresh token
+        String refreshToken = refreshUserToken(userDetails.getEmail());
+        response.addCookie(createCookie("refresh_token", refreshToken, true));
+
         return ResponseEntity.ok(new JwtResponse(jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
                 roles));
+    }
+
+    @PostMapping("/refreshToken")
+    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response){
+        Cookie refreshTokenCookie = WebUtils.getCookie(request,"refresh_token");
+
+        if (refreshTokenCookie != null) {
+            User requestedUser = userRepository.findUserByRefreshToken(refreshTokenCookie.getValue()).
+                    orElseThrow( () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid refresh token!"));
+
+            //tylko po username
+            String jwt = jwtUtils.refreshJwtToken(requestedUser.getUsername());
+
+            //refresh token
+            String refreshToken = refreshUserToken(requestedUser.getEmail());
+            response.addCookie(createCookie("refresh_token", refreshToken, true));
+
+            return ResponseEntity.ok(new JwtResponse(jwt));
+
+        }else
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid refresh token!");
     }
 
     @PostMapping("/signup")
@@ -115,5 +172,21 @@ public class AuthController {
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request){
+        Cookie refreshTokenCookie = WebUtils.getCookie(request,"refresh_token");
+        if (refreshTokenCookie != null){
+
+            Optional<User> requestedUser = userRepository.findUserByRefreshToken(refreshTokenCookie.getValue());
+
+            if(requestedUser.isPresent()) {
+                User u = requestedUser.get();
+                u.setRefreshToken("");
+                userRepository.save(u);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
