@@ -6,13 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 @RestController
-@RequestMapping(value = "/users", method = {RequestMethod.POST, RequestMethod.DELETE})
+@RequestMapping(value = "api/users", method = {RequestMethod.POST, RequestMethod.DELETE})
 public class UserController {
 
     private final UserService userService;
@@ -22,16 +23,26 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping(consumes = {"application/json"})
-    public ResponseEntity<User> createUser(@RequestBody @Valid @NotNull User user){
-        userService.saveUser(user);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
     @DeleteMapping(value = "/{id}")
-    //@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable String id){
         userService.deleteByUserId(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PutMapping(value = "/email")
+    public ResponseEntity<?> changeEmail(Authentication authentication, @RequestParam String email){
+        if (userService.changeEmail(authentication.getName(), email)){
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @PutMapping(value = "/name")
+    public ResponseEntity<?> changeName(Authentication authentication, @RequestParam String name){
+        if (userService.changeFullName(authentication.getName(), name)){
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }

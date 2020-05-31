@@ -4,7 +4,9 @@ import com.tl.backend.models.User;
 
 public interface UserService {
 
-    User saveUser(User user);
-
     void deleteByUserId(String id);
+
+    boolean changeEmail(String username, String email);
+
+    boolean changeFullName(String username, String fullName);
 }

@@ -46,6 +46,11 @@ public class TimelineController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @GetMapping(value = "/public/{username}")
+    public List<Timeline> userTimelines(@PathVariable String username){
+        return timelineService.getUserTimelines(username);
+    }
+
     @GetMapping(value ="/public", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getTimelineById(@RequestParam String id){
         Optional<Timeline> optionalTimeline = timelineService.getTimelineById(id);

@@ -66,4 +66,18 @@ public class TimelineServiceImpl implements TimelineService {
         }
         return null;
     }
+
+    @Override
+    public List<Timeline> getUserTimelines(String username) {
+        List<Timeline> allTimelines = timelineRepository.findAll();
+        List<Timeline> timelines = new ArrayList<>();
+        for (Timeline timeline : allTimelines){
+            if (timeline.getUser() != null){
+                if (timeline.getUser().getUsername().equals(username)) {
+                    timelines.add(timeline);
+                }
+            }
+        }
+        return timelines;
+    }
 }

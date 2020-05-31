@@ -25,6 +25,7 @@ public class User {
 
     private String fullName;
 
+    @JsonIgnore
     private String refreshToken;
 
     private String email;

@@ -87,6 +87,7 @@ public class AuthController {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        Date creationTime = new Date();
         String jwt = jwtUtils.generateJwtToken(authentication);
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
@@ -94,15 +95,22 @@ public class AuthController {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
+        Optional<User> optionalUser = userRepository.findUserByEmail(userDetails.getEmail());
+        String fullName = "";
+        if (optionalUser.isPresent()){
+            fullName = optionalUser.get().getFullName();
+        }
+
         //refresh token
         String refreshToken = refreshUserToken(userDetails.getEmail());
         response.addCookie(createCookie("refresh_token", refreshToken, true));
 
         return ResponseEntity.ok(new JwtResponse(jwt,
-                userDetails.getId(),
+                creationTime,
                 userDetails.getUsername(),
                 userDetails.getEmail(),
-                roles));
+                roles,
+                fullName));
     }
 
     @PostMapping("/refreshToken")
@@ -114,13 +122,29 @@ public class AuthController {
                     orElseThrow( () -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid refresh token!"));
 
             //tylko po username
+            Date creationTime = new Date();
             String jwt = jwtUtils.refreshJwtToken(requestedUser.getUsername());
+            List<String> roles = requestedUser.getRoles().stream()
+                    .map(Role::getName)
+                    .map(ERole::toString)
+                    .collect(Collectors.toList());
+
+            Optional<User> optionalUser = userRepository.findUserByEmail(requestedUser.getEmail());
+            String fullName = "";
+            if (optionalUser.isPresent()){
+                fullName = optionalUser.get().getFullName();
+            }
 
             //refresh token
             String refreshToken = refreshUserToken(requestedUser.getEmail());
             response.addCookie(createCookie("refresh_token", refreshToken, true));
 
-            return ResponseEntity.ok(new JwtResponse(jwt));
+            return ResponseEntity.ok(new JwtResponse(jwt,
+                    creationTime,
+                    requestedUser.getUsername(),
+                    requestedUser.getEmail(),
+                    roles,
+                    fullName));
 
         }else
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid refresh token!");
