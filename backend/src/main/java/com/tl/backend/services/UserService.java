@@ -9,4 +9,6 @@ public interface UserService {
     boolean changeEmail(String username, String email);
 
     boolean changeFullName(String username, String fullName);
+
+    boolean changePassword(String username, String oldPassword, String newPassword);
 }
