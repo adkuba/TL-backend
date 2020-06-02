@@ -16,4 +16,7 @@ public interface TimelineMapper {
 
     @BeanMapping(resultType = TimelineResponse.class)
     TimelineResponse timelineResponse(Timeline timeline);
+
+    @IterableMapping(elementTargetType = TimelineResponse.class)
+    List<TimelineResponse> timelinesResponse(List<Timeline> timelines);
 }

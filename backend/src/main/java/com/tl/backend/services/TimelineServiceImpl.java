@@ -5,10 +5,17 @@ import com.tl.backend.fileHandling.FileServiceImpl;
 import com.tl.backend.models.Timeline;
 import com.tl.backend.repositories.TimelineRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.SampleOperation;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,11 +24,13 @@ public class TimelineServiceImpl implements TimelineService {
 
     private final TimelineRepository timelineRepository;
     private final FileServiceImpl fileService;
+    private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public TimelineServiceImpl(TimelineRepository timelineRepository, FileServiceImpl fileService){
+    public TimelineServiceImpl(TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate){
         this.timelineRepository = timelineRepository;
         this.fileService = fileService;
+        this.mongoTemplate = mongoTemplate;
     }
 
     @Override
@@ -79,5 +88,14 @@ public class TimelineServiceImpl implements TimelineService {
             }
         }
         return timelines;
+    }
+
+    @Override
+    public List<Timeline> randomTimelines() {
+        SampleOperation matchStage = Aggregation.sample(5);
+        MatchOperation matchOperation = Aggregation.match(Criteria.where("user").exists(true));
+        Aggregation aggregation = Aggregation.newAggregation(matchStage, matchOperation);
+        AggregationResults<Timeline> timelines = mongoTemplate.aggregate(aggregation, "timelines", Timeline.class);
+        return timelines.getMappedResults();
     }
 }

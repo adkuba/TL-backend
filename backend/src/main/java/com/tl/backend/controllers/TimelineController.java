@@ -2,6 +2,7 @@ package com.tl.backend.controllers;
 
 import com.tl.backend.models.Timeline;
 import com.tl.backend.mappers.TimelineMapper;
+import com.tl.backend.response.TimelineResponse;
 import com.tl.backend.services.TimelineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -49,6 +50,11 @@ public class TimelineController {
     @GetMapping(value = "/public/{username}")
     public List<Timeline> userTimelines(@PathVariable String username){
         return timelineService.getUserTimelines(username);
+    }
+
+    @GetMapping(value = "/public/random")
+    public List<TimelineResponse> randomTimelines(){
+        return timelineMapper.timelinesResponse(timelineService.randomTimelines());
     }
 
     @GetMapping(value ="/public", produces = MediaType.APPLICATION_JSON_VALUE)
