@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.net.URL;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 
@@ -20,5 +20,5 @@ public class EventResponse implements Serializable {
     private String description;
     private HashMap<String, String> links;
     private List<URL> pictures;
-    private LocalDateTime date;
+    private LocalDate date;
 }

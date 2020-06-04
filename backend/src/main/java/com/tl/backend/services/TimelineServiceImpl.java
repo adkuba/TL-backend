@@ -2,8 +2,11 @@ package com.tl.backend.services;
 
 import com.tl.backend.fileHandling.FileResource;
 import com.tl.backend.fileHandling.FileServiceImpl;
+import com.tl.backend.models.Event;
 import com.tl.backend.models.Timeline;
+import com.tl.backend.repositories.EventRepository;
 import com.tl.backend.repositories.TimelineRepository;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
@@ -23,14 +26,16 @@ import java.util.Optional;
 public class TimelineServiceImpl implements TimelineService {
 
     private final TimelineRepository timelineRepository;
+    private final EventRepository eventRepository;
     private final FileServiceImpl fileService;
     private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public TimelineServiceImpl(TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate){
+    public TimelineServiceImpl(TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate, EventRepository eventRepository){
         this.timelineRepository = timelineRepository;
         this.fileService = fileService;
         this.mongoTemplate = mongoTemplate;
+        this.eventRepository = eventRepository;
     }
 
     @Override
@@ -57,8 +62,27 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     @Override
-    public void deleteByTimelineId(String id) {
-        timelineRepository.deleteById(id);
+    public void deleteMineTimelineById(String id) {
+        Optional<Timeline> optionalTimeline = timelineRepository.findById(id);
+        if (optionalTimeline.isPresent()){
+            Timeline timeline = optionalTimeline.get();
+            List<Event> events = eventRepository.findAllByTimelineId(timeline.getId());
+
+            for (Event event : events){
+                Optional<Timeline> optionalSubTimeline = timelineRepository.findOneByEventId(new ObjectId(event.getId()));
+                if (optionalSubTimeline.isPresent()){
+                    Timeline subTimeline = optionalSubTimeline.get();
+                    List<Event> subEvents = eventRepository.findAllByTimelineId(subTimeline.getId());
+
+                    for (Event subEvent : subEvents){
+                        eventRepository.delete(subEvent);
+                    }
+                    timelineRepository.delete(subTimeline);
+                }
+                eventRepository.delete(event);
+            }
+            timelineRepository.delete(timeline);
+        }
     }
 
     @Override

@@ -11,6 +11,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.HashMap;
@@ -107,7 +108,7 @@ public class DataStartupService {
             trackingEvent.setTitle("Object Tracking");
             trackingEvent.setShortDescription("Project using machine learning.");
             trackingEvent.setDescription(lorem);
-            trackingEvent.setDate(LocalDateTime.of(2019, Month.OCTOBER, 20, 0, 0));
+            trackingEvent.setDate(LocalDate.of(2019, Month.OCTOBER, 20));
             HashMap<String, String> trackingEventLinks = new HashMap<String, String>();
             trackingEventLinks.put("Repozytorium", "link do repoo");
             trackingEventLinks.put("Artykul", "link go medium");
@@ -116,6 +117,7 @@ public class DataStartupService {
             eventRepository.save(trackingEvent);
 
             Timeline subTimelineTrackingEvent = new Timeline();
+            subTimelineTrackingEvent.setId("kubatl-sub1");
             subTimelineTrackingEvent.setEvent(trackingEvent);
             timelineRepository.save(subTimelineTrackingEvent);
 
@@ -123,7 +125,7 @@ public class DataStartupService {
             subTrackingEvent.setTitle("Aplikacja");
             subTrackingEvent.setShortDescription("Aplikacja na IOSa");
             subTrackingEvent.setDescription(lorem.substring(0, lorem.length()/2));
-            subTrackingEvent.setDate(LocalDateTime.of(2019, Month.FEBRUARY, 10, 0, 0));
+            subTrackingEvent.setDate(LocalDate.of(2019, Month.FEBRUARY, 10));
             HashMap<String, String> subTrackingEventLinks = new HashMap<String, String>();
             subTrackingEvent.setLinks(subTrackingEventLinks);
             subTrackingEvent.setTimeline(subTimelineTrackingEvent);
@@ -134,7 +136,7 @@ public class DataStartupService {
             subTrackingEvent2.setTitle("AI");
             subTrackingEvent2.setShortDescription("Wykorzystanie uczenia maszynowego");
             subTrackingEvent2.setDescription(lorem.substring(0, lorem.length()/2));
-            subTrackingEvent2.setDate(LocalDateTime.of(2019, Month.JULY, 10, 0, 0));
+            subTrackingEvent2.setDate(LocalDate.of(2019, Month.JULY, 10));
             HashMap<String, String> subTrackingEventLinks2 = new HashMap<String, String>();
             subTrackingEventLinks2.put("Demo", "link do demo");
             subTrackingEvent2.setLinks(subTrackingEventLinks2);
@@ -145,7 +147,7 @@ public class DataStartupService {
             gameEvent.setTitle("Gravity");
             gameEvent.setShortDescription("Game created in Unity");
             gameEvent.setDescription(lorem);
-            gameEvent.setDate(LocalDateTime.of(2020, Month.FEBRUARY, 20, 0, 0));
+            gameEvent.setDate(LocalDate.of(2020, Month.FEBRUARY, 20));
             HashMap<String, String> gameEventLinks = new HashMap<String, String>();
             gameEventLinks.put("Repozytorium", "link do repoo");
             gameEventLinks.put("Google Play", "link go playa");
