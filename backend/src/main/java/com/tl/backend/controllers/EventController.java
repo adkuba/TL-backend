@@ -2,7 +2,10 @@ package com.tl.backend.controllers;
 
 import com.tl.backend.models.Event;
 import com.tl.backend.mappers.EventsMapper;
+import com.tl.backend.models.Timeline;
+import com.tl.backend.response.EventResponse;
 import com.tl.backend.services.EventService;
+import com.tl.backend.services.TimelineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -20,17 +24,28 @@ public class EventController {
 
     private final EventService eventService;
     private final EventsMapper eventsMapper;
+    private final TimelineService timelineService;
 
     @Autowired
-    public EventController(EventService eventService, EventsMapper eventsMapper){
+    public EventController(EventService eventService, EventsMapper eventsMapper, TimelineService timelineService){
         this.eventService = eventService;
         this.eventsMapper = eventsMapper;
+        this.timelineService = timelineService;
     }
 
     @PostMapping(consumes = {"application/json"})
     public ResponseEntity<Event> createEvent(@RequestBody @Valid @NotNull Event event){
         Event createdEvent = eventService.saveEvent(event);
         return new ResponseEntity<>(createdEvent, HttpStatus.CREATED);
+    }
+
+    @PostMapping(value = "/multiple",consumes = {"application/json"})
+    public ResponseEntity<List<EventResponse>> createEvents(@RequestBody @Valid @NotNull List<Event> events){
+        List<Event> createdEvents = new ArrayList<>();
+        for (Event event : events){
+            createdEvents.add(eventService.saveEvent(event));
+        }
+        return new ResponseEntity<>(eventsMapper.eventResponse(createdEvents), HttpStatus.CREATED);
     }
 
     @PostMapping(value = "/{id}/pictures", consumes = {"multipart/form-data"})
@@ -49,5 +64,20 @@ public class EventController {
     public ResponseEntity<?> getEventsByTimelineId(@RequestParam String timelineId){
         List<Event> events = eventService.getEventsByTimelineId(timelineId);
         return ResponseEntity.ok(eventsMapper.eventResponse(events));
+    }
+
+    @GetMapping(value = "/allSubEventsByMainTimelineId", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getAllSubEventsByMainTimelineId(@RequestParam String timelineId){
+        List<Event> events = eventService.getEventsByTimelineId(timelineId);
+        List<List<EventResponse>> subEvents = new ArrayList<>();
+        for (Event event : events){
+            Timeline subTimeline = timelineService.getTimelineByEventId(event.getId());
+            List<EventResponse> pom = new ArrayList<>();
+            if (subTimeline != null){
+                pom = eventsMapper.eventResponse(eventService.getEventsByTimelineId(subTimeline.getId()));
+            }
+            subEvents.add(pom);
+        }
+        return ResponseEntity.ok(subEvents);
     }
 }

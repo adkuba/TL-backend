@@ -13,4 +13,6 @@ public interface TimelineRepository extends MongoRepository<Timeline, String> {
 
     @Query("{ 'event.id' : ?0 }")
     Optional<Timeline> findOneByEventId(@Param("id") ObjectId id);
+
+    boolean existsById(String id);
 }
