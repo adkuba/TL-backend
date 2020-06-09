@@ -54,6 +54,12 @@ public class EventController {
         return new ResponseEntity<>(picEvent, HttpStatus.CREATED);
     }
 
+    @PostMapping(value = "/{id}/picturesURL")
+    public ResponseEntity<?> addPicturesURL(@PathVariable String id, @Valid @RequestParam List<String> picturesURL){
+        Event picEvent = eventService.setPicturesURL(id, picturesURL);
+        return new ResponseEntity<>(picEvent, HttpStatus.CREATED);
+    }
+
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<?> deleteEvent(@PathVariable String id){
         eventService.deleteByEventId(id);

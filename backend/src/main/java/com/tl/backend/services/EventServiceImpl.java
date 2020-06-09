@@ -1,6 +1,7 @@
 package com.tl.backend.services;
 
 import com.tl.backend.fileHandling.FileResource;
+import com.tl.backend.fileHandling.FileResourceRepository;
 import com.tl.backend.fileHandling.FileService;
 import com.tl.backend.fileHandling.FileServiceImpl;
 import com.tl.backend.models.Event;
@@ -18,10 +19,12 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final FileServiceImpl fileService;
+    private final FileResourceRepository fileResourceRepository;
 
     @Autowired
-    public EventServiceImpl(EventRepository eventRepository, FileServiceImpl fileService){
+    public EventServiceImpl(FileResourceRepository fileResourceRepository, EventRepository eventRepository, FileServiceImpl fileService){
         this.eventRepository = eventRepository;
+        this.fileResourceRepository = fileResourceRepository;
         this.fileService = fileService;
     }
 
@@ -48,6 +51,27 @@ public class EventServiceImpl implements EventService {
                 fileResources.add(fileService.saveFileResource(picture));
             }
             picEvent.setPictures(fileResources);
+            return eventRepository.save(picEvent);
+        }
+        return null;
+    }
+
+    @Override
+    public Event setPicturesURL(String id, List<String> urls) {
+        Optional<Event> opPicEvent = eventRepository.findById(id);
+        if (opPicEvent.isPresent()){
+            Event picEvent = opPicEvent.get();
+            List<FileResource> pictures = picEvent.getPictures();
+            for (String url : urls){
+                String[] parts = url.split("/");
+                Optional<FileResource> optionalFileResource = fileResourceRepository.findById(parts[parts.length-1]);
+                if (optionalFileResource.isPresent()){
+                    FileResource picture = optionalFileResource.get();
+                    pictures.add(picture);
+                }
+            }
+            picEvent.setPictures(pictures);
+
             return eventRepository.save(picEvent);
         }
         return null;

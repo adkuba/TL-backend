@@ -66,7 +66,7 @@ public class DataStartupService {
             timeline.setDescription(lorem);
             timeline.setId("kubatl");
             timelineRepository.save(timeline);
-            //2
+            /*
             Timeline timeline2 = new Timeline();
             timeline2.setUser(kuba);
             timeline2.setDescriptionTitle("Pictures");
@@ -101,7 +101,7 @@ public class DataStartupService {
             timeline6.setDescription(lorem);
             timeline6.setId("kubatl6");
             timelineRepository.save(timeline6);
-
+             */
 
 
             Event trackingEvent = new Event();

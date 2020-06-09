@@ -1,6 +1,7 @@
 package com.tl.backend.services;
 
 import com.tl.backend.fileHandling.FileResource;
+import com.tl.backend.fileHandling.FileResourceRepository;
 import com.tl.backend.fileHandling.FileServiceImpl;
 import com.tl.backend.models.Event;
 import com.tl.backend.models.Timeline;
@@ -29,10 +30,12 @@ public class TimelineServiceImpl implements TimelineService {
     private final EventRepository eventRepository;
     private final FileServiceImpl fileService;
     private final MongoTemplate mongoTemplate;
+    private final FileResourceRepository fileResourceRepository;
 
     @Autowired
-    public TimelineServiceImpl(TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate, EventRepository eventRepository){
+    public TimelineServiceImpl(FileResourceRepository fileResourceRepository, TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate, EventRepository eventRepository){
         this.timelineRepository = timelineRepository;
+        this.fileResourceRepository = fileResourceRepository;
         this.fileService = fileService;
         this.mongoTemplate = mongoTemplate;
         this.eventRepository = eventRepository;
@@ -62,12 +65,15 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     @Override
-    public void deleteMineTimelineById(String id) {
+    public void deleteMineTimelineById(String id, Boolean delPictures) {
         Optional<Timeline> optionalTimeline = timelineRepository.findById(id);
         if (optionalTimeline.isPresent()){
             Timeline timeline = optionalTimeline.get();
-            List<Event> events = eventRepository.findAllByTimelineId(timeline.getId());
+            if (delPictures){
+                deletePictures(timeline.getPictures());
+            }
 
+            List<Event> events = eventRepository.findAllByTimelineId(timeline.getId());
             for (Event event : events){
                 Optional<Timeline> optionalSubTimeline = timelineRepository.findOneByEventId(new ObjectId(event.getId()));
                 if (optionalSubTimeline.isPresent()){
@@ -75,13 +81,27 @@ public class TimelineServiceImpl implements TimelineService {
                     List<Event> subEvents = eventRepository.findAllByTimelineId(subTimeline.getId());
 
                     for (Event subEvent : subEvents){
+                        if (delPictures){
+                            deletePictures(subEvent.getPictures());
+                        }
                         eventRepository.delete(subEvent);
                     }
                     timelineRepository.delete(subTimeline);
                 }
+                if (delPictures){
+                    deletePictures(event.getPictures());
+                }
                 eventRepository.delete(event);
             }
             timelineRepository.delete(timeline);
+        }
+    }
+
+    private void deletePictures(List<FileResource> pictures){
+        if (pictures != null){
+            for (FileResource fileResource : pictures){
+                fileService.deleteFileResource(fileResource);
+            }
         }
     }
 
@@ -95,6 +115,27 @@ public class TimelineServiceImpl implements TimelineService {
                 fileResources.add(fileService.saveFileResource(file));
             }
             timeline.setPictures(fileResources);
+            return timelineRepository.save(timeline);
+        }
+        return null;
+    }
+
+    @Override
+    public Timeline setPicturesURL(String id, List<String> urls) {
+        Optional<Timeline> optionalTimeline = timelineRepository.findById(id);
+        if (optionalTimeline.isPresent()){
+            Timeline timeline = optionalTimeline.get();
+            List<FileResource> pictures = timeline.getPictures();
+            for (String url : urls){
+                String[] parts = url.split("/");
+                Optional<FileResource> optionalFileResource = fileResourceRepository.findById(parts[parts.length-1]);
+                if (optionalFileResource.isPresent()){
+                    FileResource picture = optionalFileResource.get();
+                    pictures.add(picture);
+                }
+            }
+            timeline.setPictures(pictures);
+
             return timelineRepository.save(timeline);
         }
         return null;

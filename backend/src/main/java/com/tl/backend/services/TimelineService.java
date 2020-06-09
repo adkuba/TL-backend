@@ -14,9 +14,11 @@ public interface TimelineService {
 
     Timeline saveTimeline(Timeline timeline);
 
-    void deleteMineTimelineById(String id);
+    void deleteMineTimelineById(String id, Boolean delPictures);
 
     Timeline setPictures(String id, List<MultipartFile> multipartFiles);
+
+    Timeline setPicturesURL(String id, List<String> urls);
 
     List<Timeline> getUserTimelines(String username);
 

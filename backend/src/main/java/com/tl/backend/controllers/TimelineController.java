@@ -46,7 +46,7 @@ public class TimelineController {
             }
         }
         if (withDelete){
-            timelineService.deleteMineTimelineById(timeline.getId());
+            timelineService.deleteMineTimelineById(timeline.getId(), false);
         }
         if (findUser){
             Optional<User> optionalUser = userRepository.findByUsername(authentication.getName());
@@ -71,9 +71,15 @@ public class TimelineController {
         return new ResponseEntity<>(picTimeline, HttpStatus.CREATED);
     }
 
+    @PostMapping(value = "/{id}/picturesURL")
+    public ResponseEntity<?> addPicturesURL(@PathVariable String id, @Valid @RequestParam List<String> picturesURL){
+        Timeline picTimeline = timelineService.setPicturesURL(id, picturesURL);
+        return new ResponseEntity<>(picTimeline, HttpStatus.CREATED);
+    }
+
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<?> deleteMainTimeline(@PathVariable String id){
-        timelineService.deleteMineTimelineById(id);
+        timelineService.deleteMineTimelineById(id, true);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
