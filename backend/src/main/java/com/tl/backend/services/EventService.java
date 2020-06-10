@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface EventService {
 
-    List<Event> getEventsByTimelineId(String timelineId);
+    List<Event> getEventsByTimelineId(String timelineId, Boolean view);
 
     Event saveEvent(Event event);
 

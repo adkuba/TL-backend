@@ -1,10 +1,7 @@
 package com.tl.backend.services;
 
 import com.tl.backend.models.*;
-import com.tl.backend.repositories.EventRepository;
-import com.tl.backend.repositories.RoleRepository;
-import com.tl.backend.repositories.TimelineRepository;
-import com.tl.backend.repositories.UserRepository;
+import com.tl.backend.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -14,9 +11,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class DataStartupService {
@@ -25,16 +20,18 @@ public class DataStartupService {
     private final TimelineRepository timelineRepository;
     private final EventRepository eventRepository;
     private final RoleRepository roleRepository;
+    private final StatisticsRepository statisticsRepository;
 
     @Autowired
     PasswordEncoder encoder;
 
     @Autowired
-    public DataStartupService(UserRepository userRepository, TimelineRepository timelineRepository, EventRepository eventRepository, RoleRepository roleRepository){
+    public DataStartupService(StatisticsRepository statisticsRepository, UserRepository userRepository, TimelineRepository timelineRepository, EventRepository eventRepository, RoleRepository roleRepository){
         this.userRepository = userRepository;
         this.timelineRepository = timelineRepository;
         this.eventRepository = eventRepository;
         this.roleRepository = roleRepository;
+        this.statisticsRepository = statisticsRepository;
     }
 
     private void createMe(){
@@ -47,6 +44,10 @@ public class DataStartupService {
             Role userR = new Role();
             userR.setName(ERole.ROLE_USER);
             roleRepository.save(userR);
+
+            Statistics statistics = new Statistics();
+            statistics.setDay(LocalDate.now());
+            statisticsRepository.save(statistics);
 
             User kuba = new User();
             kuba.setFullName("Jakub Adamski");
@@ -65,43 +66,8 @@ public class DataStartupService {
             timeline.setDescriptionTitle("Me");
             timeline.setDescription(lorem);
             timeline.setId("kubatl");
+            timeline.setPictures(new ArrayList<>());
             timelineRepository.save(timeline);
-            /*
-            Timeline timeline2 = new Timeline();
-            timeline2.setUser(kuba);
-            timeline2.setDescriptionTitle("Pictures");
-            timeline2.setDescription(lorem);
-            timeline2.setId("kubatl2");
-            timelineRepository.save(timeline2);
-            //3
-            Timeline timeline3 = new Timeline();
-            timeline3.setUser(kuba);
-            timeline3.setDescriptionTitle("Projects");
-            timeline3.setDescription(lorem);
-            timeline3.setId("kubatl3");
-            timelineRepository.save(timeline3);
-            //4
-            Timeline timeline4 = new Timeline();
-            timeline4.setUser(kuba);
-            timeline4.setDescriptionTitle("Books");
-            timeline4.setDescription(lorem);
-            timeline4.setId("kubatl4");
-            timelineRepository.save(timeline4);
-            //5
-            Timeline timeline5 = new Timeline();
-            timeline5.setUser(kuba);
-            timeline5.setDescriptionTitle("Company");
-            timeline5.setDescription(lorem);
-            timeline5.setId("kubatl5");
-            timelineRepository.save(timeline5);
-            //6
-            Timeline timeline6 = new Timeline();
-            timeline6.setUser(kuba);
-            timeline6.setDescriptionTitle("Sport");
-            timeline6.setDescription(lorem);
-            timeline6.setId("kubatl6");
-            timelineRepository.save(timeline6);
-             */
 
 
             Event trackingEvent = new Event();

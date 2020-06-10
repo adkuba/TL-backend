@@ -17,5 +17,8 @@ public class TimelineResponse {
     private String description;
     private String descriptionTitle;
     private Event event;
+    private long views;
+    private String category;
+    private long trendingViews;
     private List<URL> pictures;
 }

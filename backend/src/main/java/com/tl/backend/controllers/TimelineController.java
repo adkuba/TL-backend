@@ -17,9 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/timelines")
@@ -88,9 +86,49 @@ public class TimelineController {
         return timelineService.getUserTimelines(username);
     }
 
-    @GetMapping(value = "/public/random")
-    public List<TimelineResponse> randomTimelines(){
-        return timelineMapper.timelinesResponse(timelineService.randomTimelines());
+    @GetMapping(value = "/public/homepage")
+    public List<TimelineResponse> homepageTimelines(){
+        List<TimelineResponse> timelineResponses = new ArrayList<>();
+        Random rand = new Random();
+        List<TimelineResponse> randomTimelines = timelineMapper.timelinesResponse(timelineService.randomTimelines());
+        List<TimelineResponse> newTimelines = timelineMapper.timelinesResponse(timelineService.newTimelines());
+        List<TimelineResponse> popularTimelines = timelineMapper.timelinesResponse(timelineService.popularTimelines());
+        List<TimelineResponse> trendingTimelines = timelineMapper.timelinesResponse(timelineService.trendingTimelines());
+
+        for (TimelineResponse timelineResponse : randomTimelines){
+            timelineResponse.setCategory("RANDOM");
+            timelineResponses.add(timelineResponse);
+        }
+        for (int i=0; i<2; i++){
+            if (newTimelines.size() > 0){
+                int randomIndex = rand.nextInt(newTimelines.size());
+                TimelineResponse timelineResponse = newTimelines.get(randomIndex);
+                timelineResponse.setCategory("NEW");
+                timelineResponses.add(timelineResponse);
+                newTimelines.remove(randomIndex);
+            }
+        }
+        for (int i=0; i<2; i++){
+            if (popularTimelines.size() > 0){
+                int randomIndex = rand.nextInt(popularTimelines.size());
+                TimelineResponse timelineResponse = popularTimelines.get(randomIndex);
+                timelineResponse.setCategory("POPULAR");
+                timelineResponses.add(timelineResponse);
+                popularTimelines.remove(randomIndex);
+            }
+        }
+        for (int i=0; i<2; i++){
+            if (trendingTimelines.size() > 0){
+                int randomIndex = rand.nextInt(trendingTimelines.size());
+                TimelineResponse timelineResponse = trendingTimelines.get(randomIndex);
+                timelineResponse.setCategory("TRENDING");
+                timelineResponses.add(timelineResponse);
+                trendingTimelines.remove(randomIndex);
+            }
+        }
+
+        Collections.shuffle(timelineResponses);
+        return timelineResponses;
     }
 
     @GetMapping(value ="/public", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -106,5 +144,10 @@ public class TimelineController {
     public ResponseEntity<?> getTimelineByEventId(@RequestParam String eventId){
         Timeline timeline = timelineService.getTimelineByEventId(eventId);
         return ResponseEntity.ok(timelineMapper.timelineResponse(timeline));
+    }
+
+    @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getAllTimelines(){
+        return new ResponseEntity<>(timelineMapper.timelinesResponse(timelineService.getAllUserTimelines()), HttpStatus.OK);
     }
 }

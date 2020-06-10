@@ -5,7 +5,9 @@ import com.tl.backend.fileHandling.FileResourceRepository;
 import com.tl.backend.fileHandling.FileService;
 import com.tl.backend.fileHandling.FileServiceImpl;
 import com.tl.backend.models.Event;
+import com.tl.backend.models.Timeline;
 import com.tl.backend.repositories.EventRepository;
+import com.tl.backend.repositories.TimelineRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,22 +22,27 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final FileServiceImpl fileService;
     private final FileResourceRepository fileResourceRepository;
+    private final TimelineRepository timelineRepository;
 
     @Autowired
-    public EventServiceImpl(FileResourceRepository fileResourceRepository, EventRepository eventRepository, FileServiceImpl fileService){
+    public EventServiceImpl(TimelineRepository timelineRepository, FileResourceRepository fileResourceRepository, EventRepository eventRepository, FileServiceImpl fileService){
         this.eventRepository = eventRepository;
         this.fileResourceRepository = fileResourceRepository;
         this.fileService = fileService;
+        this.timelineRepository = timelineRepository;
     }
 
 
     @Override
-    public List<Event> getEventsByTimelineId(String timelineId) {
-        List<Event> events = new ArrayList<>();
-        List<Event> allEvents = eventRepository.findAll();
-        for(Event event : allEvents){
-            if(event.getTimeline().getId().equals(timelineId)){
-                events.add(event);
+    public List<Event> getEventsByTimelineId(String timelineId, Boolean view) {
+        List<Event> events = eventRepository.findAllByTimelineId(timelineId);
+        //stats
+        if (view){
+            Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
+            if (optionalTimeline.isPresent()){
+                Timeline timeline = optionalTimeline.get();
+                timeline.setViews(timeline.getViews() + 1);
+                timelineRepository.save(timeline);
             }
         }
         return events;

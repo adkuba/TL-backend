@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Document(collection = "timelines")
@@ -25,4 +26,14 @@ public class Timeline {
     private Event event;
 
     private List<FileResource> pictures;
+
+    private long views = 0;
+    private long dayBeforeViews = 0;
+    private long twoDaysBeforeViews = 0;
+    private long trendingViews = 0;
+    private LocalDate creationDate = LocalDate.now();
+
+    public void updateTrending(){
+        trendingViews = views - twoDaysBeforeViews;
+    }
 }

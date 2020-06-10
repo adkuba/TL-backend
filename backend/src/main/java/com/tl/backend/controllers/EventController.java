@@ -67,20 +67,25 @@ public class EventController {
     }
 
     @GetMapping(value = "/public", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getEventsByTimelineId(@RequestParam String timelineId){
-        List<Event> events = eventService.getEventsByTimelineId(timelineId);
+    public ResponseEntity<?> getEventsByTimelineId(@RequestParam String timelineId, @RequestParam(required = false) Boolean view){
+        List<Event> events;
+        if (view != null){
+            events = eventService.getEventsByTimelineId(timelineId, view);
+        } else {
+            events = eventService.getEventsByTimelineId(timelineId, false);
+        }
         return ResponseEntity.ok(eventsMapper.eventResponse(events));
     }
 
     @GetMapping(value = "/allSubEventsByMainTimelineId", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getAllSubEventsByMainTimelineId(@RequestParam String timelineId){
-        List<Event> events = eventService.getEventsByTimelineId(timelineId);
+        List<Event> events = eventService.getEventsByTimelineId(timelineId, false);
         List<List<EventResponse>> subEvents = new ArrayList<>();
         for (Event event : events){
             Timeline subTimeline = timelineService.getTimelineByEventId(event.getId());
             List<EventResponse> pom = new ArrayList<>();
             if (subTimeline != null){
-                pom = eventsMapper.eventResponse(eventService.getEventsByTimelineId(subTimeline.getId()));
+                pom = eventsMapper.eventResponse(eventService.getEventsByTimelineId(subTimeline.getId(), false));
             }
             subEvents.add(pom);
         }

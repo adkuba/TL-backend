@@ -23,4 +23,12 @@ public interface TimelineService {
     List<Timeline> getUserTimelines(String username);
 
     List<Timeline> randomTimelines();
+
+    List<Timeline> newTimelines();
+
+    List<Timeline> popularTimelines();
+
+    List<Timeline> trendingTimelines();
+
+    List<Timeline> getAllUserTimelines();
 }
