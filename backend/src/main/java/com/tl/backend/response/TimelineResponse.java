@@ -20,5 +20,6 @@ public class TimelineResponse {
     private long views;
     private String category;
     private long trendingViews;
+    private long likes;
     private List<URL> pictures;
 }

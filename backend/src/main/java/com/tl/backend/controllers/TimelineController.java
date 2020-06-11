@@ -75,6 +75,24 @@ public class TimelineController {
         return new ResponseEntity<>(picTimeline, HttpStatus.CREATED);
     }
 
+    @PostMapping(value = "/{id}/like")
+    public ResponseEntity<?> likeTiemline(Authentication authentication, @PathVariable String id){
+        List<String> likes = timelineService.likeTimeline(id, authentication.getName());
+        if (likes == null){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(likes, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/{id}/dislike")
+    public ResponseEntity<?> dislikeTiemline(Authentication authentication, @PathVariable String id){
+        List<String> likes = timelineService.dislikeTimeline(id, authentication.getName());
+        if (likes == null){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(likes, HttpStatus.OK);
+    }
+
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<?> deleteMainTimeline(@PathVariable String id){
         timelineService.deleteMineTimelineById(id, true);

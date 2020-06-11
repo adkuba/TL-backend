@@ -32,6 +32,7 @@ public class Timeline {
     private long twoDaysBeforeViews = 0;
     private long trendingViews = 0;
     private LocalDate creationDate = LocalDate.now();
+    private long likes = 0;
 
     public void updateTrending(){
         trendingViews = views - twoDaysBeforeViews;

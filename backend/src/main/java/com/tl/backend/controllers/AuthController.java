@@ -97,15 +97,18 @@ public class AuthController {
 
         Optional<User> optionalUser = userRepository.findUserByEmail(userDetails.getEmail());
         String fullName = "";
+        List<String> likes = new ArrayList<>();
         if (optionalUser.isPresent()){
             fullName = optionalUser.get().getFullName();
+            likes = optionalUser.get().getLikes();
         }
 
         //refresh token
         String refreshToken = refreshUserToken(userDetails.getEmail());
         response.addCookie(createCookie("refresh_token", refreshToken, true));
 
-        return ResponseEntity.ok(new JwtResponse(jwt,
+        return ResponseEntity.ok(new JwtResponse(likes,
+                jwt,
                 creationTime,
                 userDetails.getUsername(),
                 userDetails.getEmail(),
@@ -131,15 +134,18 @@ public class AuthController {
 
             Optional<User> optionalUser = userRepository.findUserByEmail(requestedUser.getEmail());
             String fullName = "";
+            List<String> likes = new ArrayList<>();
             if (optionalUser.isPresent()){
                 fullName = optionalUser.get().getFullName();
+                likes = optionalUser.get().getLikes();
             }
 
             //refresh token
             String refreshToken = refreshUserToken(requestedUser.getEmail());
             response.addCookie(createCookie("refresh_token", refreshToken, true));
 
-            return ResponseEntity.ok(new JwtResponse(jwt,
+            return ResponseEntity.ok(new JwtResponse(likes,
+                    jwt,
                     creationTime,
                     requestedUser.getUsername(),
                     requestedUser.getEmail(),

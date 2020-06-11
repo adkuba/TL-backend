@@ -5,8 +5,10 @@ import com.tl.backend.fileHandling.FileResourceRepository;
 import com.tl.backend.fileHandling.FileServiceImpl;
 import com.tl.backend.models.Event;
 import com.tl.backend.models.Timeline;
+import com.tl.backend.models.User;
 import com.tl.backend.repositories.EventRepository;
 import com.tl.backend.repositories.TimelineRepository;
+import com.tl.backend.repositories.UserRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -31,11 +33,13 @@ public class TimelineServiceImpl implements TimelineService {
     private final EventRepository eventRepository;
     private final FileServiceImpl fileService;
     private final MongoTemplate mongoTemplate;
+    private final UserRepository userRepository;
     private final FileResourceRepository fileResourceRepository;
 
     @Autowired
-    public TimelineServiceImpl(FileResourceRepository fileResourceRepository, TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate, EventRepository eventRepository){
+    public TimelineServiceImpl(UserRepository userRepository, FileResourceRepository fileResourceRepository, TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate, EventRepository eventRepository){
         this.timelineRepository = timelineRepository;
+        this.userRepository = userRepository;
         this.fileResourceRepository = fileResourceRepository;
         this.fileService = fileService;
         this.mongoTemplate = mongoTemplate;
@@ -201,5 +205,40 @@ public class TimelineServiceImpl implements TimelineService {
         Aggregation aggregation = Aggregation.newAggregation(matchOperation);
         AggregationResults<Timeline> timelines = mongoTemplate.aggregate(aggregation, "timelines", Timeline.class);
         return timelines.getMappedResults();
+    }
+
+    @Override
+    public List<String> likeTimeline(String timelineId, String username) {
+        return likeOperation(1, timelineId, username);
+    }
+
+    @Override
+    public List<String> dislikeTimeline(String timelineId, String username) {
+        return likeOperation(-1, timelineId, username);
+    }
+
+    private List<String> likeOperation(Integer add, String timelineId, String username){
+        Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
+        if (optionalTimeline.isPresent()){
+            Timeline timeline = optionalTimeline.get();
+            timeline.setLikes(timeline.getLikes()+add);
+            timelineRepository.save(timeline);
+
+            Optional<User> optionalUser = userRepository.findByUsername(username);
+            if (optionalUser.isPresent()){
+                User user = optionalUser.get();
+                List<String> likes = user.getLikes();
+                if (add == 1){
+                    likes.add(timelineId);
+
+                } else {
+                    likes.remove(timelineId);
+                }
+                user.setLikes(likes);
+                userRepository.save(user);
+                return likes;
+            }
+        }
+        return null;
     }
 }

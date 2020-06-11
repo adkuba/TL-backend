@@ -31,4 +31,8 @@ public interface TimelineService {
     List<Timeline> trendingTimelines();
 
     List<Timeline> getAllUserTimelines();
+
+    List<String> likeTimeline(String timelineId, String username);
+
+    List<String> dislikeTimeline(String timelineId, String username);
 }
