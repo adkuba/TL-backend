@@ -1,7 +1,7 @@
 package com.tl.backend.services;
 
 import com.tl.backend.fileHandling.FileResource;
-import com.tl.backend.fileHandling.FileResourceRepository;
+import com.tl.backend.repositories.FileResourceRepository;
 import com.tl.backend.fileHandling.FileServiceImpl;
 import com.tl.backend.models.Event;
 import com.tl.backend.models.Timeline;
@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 

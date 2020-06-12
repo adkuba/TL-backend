@@ -19,7 +19,10 @@ public class FileResource {
 
     private @Id String id;
 
-    private @ContentId String contentId;
-    private @ContentLength Long contentLength;
-    private @MimeType String mimeType;
+    private @ContentId
+    String contentId;
+    private @ContentLength
+    Long contentLength;
+    private @MimeType
+    String mimeType;
 }

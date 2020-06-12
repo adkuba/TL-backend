@@ -2,7 +2,10 @@ package com.tl.backend.mappers;
 
 import com.tl.backend.models.Event;
 import com.tl.backend.response.EventResponse;
-import org.mapstruct.*;
+import org.mapstruct.IterableMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.ReportingPolicy;
+import org.springframework.context.annotation.Bean;
 
 import java.util.List;
 

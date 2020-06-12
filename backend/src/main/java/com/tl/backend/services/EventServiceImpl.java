@@ -1,8 +1,7 @@
 package com.tl.backend.services;
 
 import com.tl.backend.fileHandling.FileResource;
-import com.tl.backend.fileHandling.FileResourceRepository;
-import com.tl.backend.fileHandling.FileService;
+import com.tl.backend.repositories.FileResourceRepository;
 import com.tl.backend.fileHandling.FileServiceImpl;
 import com.tl.backend.models.Event;
 import com.tl.backend.models.Timeline;

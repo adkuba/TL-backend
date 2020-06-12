@@ -1,7 +1,7 @@
 package com.tl.backend.controllers;
 
 import com.tl.backend.fileHandling.FileResource;
-import com.tl.backend.fileHandling.FileResourceRepository;
+import com.tl.backend.repositories.FileResourceRepository;
 import com.tl.backend.fileHandling.FileServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

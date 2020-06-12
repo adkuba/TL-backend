@@ -1,5 +1,6 @@
-package com.tl.backend.fileHandling;
+package com.tl.backend.repositories;
 
+import com.tl.backend.fileHandling.FileResource;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.repository.query.Param;

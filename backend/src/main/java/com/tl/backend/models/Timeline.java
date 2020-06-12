@@ -10,6 +10,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Document(collection = "timelines")
+@org.springframework.data.elasticsearch.annotations.Document(indexName = "timeline")
 @Data
 @NoArgsConstructor
 public class Timeline {
