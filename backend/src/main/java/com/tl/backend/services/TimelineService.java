@@ -35,4 +35,6 @@ public interface TimelineService {
     List<String> likeTimeline(String timelineId, String username);
 
     List<String> dislikeTimeline(String timelineId, String username);
+
+    List<Timeline> searchTimelines(String text);
 }

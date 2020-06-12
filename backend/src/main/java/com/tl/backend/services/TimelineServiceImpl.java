@@ -11,10 +11,14 @@ import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.TextCriteria;
+import org.springframework.data.mongodb.core.query.TextQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -215,6 +219,16 @@ public class TimelineServiceImpl implements TimelineService {
     @Override
     public List<String> dislikeTimeline(String timelineId, String username) {
         return likeOperation(-1, timelineId, username);
+    }
+
+    @Override
+    public List<Timeline> searchTimelines(String text) {
+        TextCriteria criteria = TextCriteria.forDefaultLanguage()
+                .matchingAny(text);
+        Query query = TextQuery.queryText(criteria)
+                .sortByScore()
+                .with(PageRequest.of(0, 5));
+        return mongoTemplate.find(query, Timeline.class);
     }
 
     private List<String> likeOperation(Integer add, String timelineId, String username){

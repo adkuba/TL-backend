@@ -5,6 +5,8 @@ import com.tl.backend.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.index.TextIndexDefinition;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,13 +23,15 @@ public class DataStartupService {
     private final EventRepository eventRepository;
     private final RoleRepository roleRepository;
     private final StatisticsRepository statisticsRepository;
+    private final MongoTemplate mongoTemplate;
 
     @Autowired
     PasswordEncoder encoder;
 
     @Autowired
-    public DataStartupService(StatisticsRepository statisticsRepository, UserRepository userRepository, TimelineRepository timelineRepository, EventRepository eventRepository, RoleRepository roleRepository){
+    public DataStartupService(MongoTemplate mongoTemplate, StatisticsRepository statisticsRepository, UserRepository userRepository, TimelineRepository timelineRepository, EventRepository eventRepository, RoleRepository roleRepository){
         this.userRepository = userRepository;
+        this.mongoTemplate = mongoTemplate;
         this.timelineRepository = timelineRepository;
         this.eventRepository = eventRepository;
         this.roleRepository = roleRepository;
@@ -37,7 +41,16 @@ public class DataStartupService {
     private void createMe(){
         String lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida dui feugiat risus vehicula, vel placerat velit auctor. Sed lobortis tellus ut ullamcorper sagittis. Duis eget aliquam metus, ac sodales nunc. Integer imperdiet feugiat feugiat. Sed vel auctor nisi. Suspendisse potenti. Donec tellus velit, fringilla ac orci vitae, rhoncus placerat lacus. Integer in dictum nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum a risus nec eros pretium rhoncus. Integer a dignissim urna. Duis tempus odio eu elit consequat, eget placerat tortor sodales. Nulla finibus, nisi sed pellentesque laoreet, purus orci tincidunt sem, sit amet egestas sem dui in lorem.";
 
+        //indexing
         if (userRepository.findByUsername("akuba").isEmpty()){
+            TextIndexDefinition textIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
+                    .onField("description")
+                    .onField("descriptionTitle")
+                    .build();
+
+            mongoTemplate.indexOps(Timeline.class).ensureIndex(textIndex);
+
+
             Role admin = new Role();
             admin.setName(ERole.ROLE_ADMIN);
             roleRepository.save(admin);

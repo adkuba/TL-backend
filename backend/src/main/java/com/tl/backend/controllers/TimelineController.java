@@ -164,6 +164,11 @@ public class TimelineController {
         return ResponseEntity.ok(timelineMapper.timelineResponse(timeline));
     }
 
+    @GetMapping(value = "/public/search")
+    public ResponseEntity<?> searchTimelines(@RequestParam String text){
+        return ResponseEntity.ok(timelineMapper.timelinesResponse(timelineService.searchTimelines(text)));
+    }
+
     @GetMapping(value = "/all", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getAllTimelines(){
         return new ResponseEntity<>(timelineMapper.timelinesResponse(timelineService.getAllUserTimelines()), HttpStatus.OK);
