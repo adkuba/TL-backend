@@ -1,27 +1,9 @@
 # TL-backend
 Backend do strony timeline.
 
-## Uruchomienie
-Musi dzialac mongodb <code>sudo systemctl start mongod</code> uwaga przy pierwszym uruchomieniu trzeba stworzyc usera admin. Do zapytan REST uzywac Postmana, do przegladania bazy danych Mongodb Compass, glowny projekt w Intellij.
+## elasticTest
+Branch testowy dla elasticsearch. Elasticsearch to komplenty system lacznie z baza danych!!! umozliwiajacy bardzo zaawansowana analize danych. Wykorzystanie to np totalnie zrezygnowanie z mongo i przeniesienie danych do elasticsearch lub np polaczenie ze czesc danych wysylamy na elasticsearch i tam analizujemy. UWAGA entities musza byc osobne - nie tak jak jest teraz ze mam Timeline dla mongo i elasticsearch - to nie zadziala. Plus elasitcsearch musi byc uruchomiony np poprzez dockera.
 
-## Co to jest?
-Strona umozliwiajaca stworzenie wlasnego portfolio, na podstawie zrealizowanych projektow. <br>
-
-Istniejące rozwiązania:
-- kreatory stron takie jak WordPress - strony dostosowane do twoich potrzeb
-- kreatory osi czasu - do robienia timeline np przy projektach itd.
-- portale z ogłoszeniami pracy linkedin 
-
-Główne cechy mojej strony:
-- oparta na jednym szablonie dla wszystkich - oś czasu na której dodajemy projekty.
-- w punktach które dodajemy na oś może być JEDNA dodatkowa oś czasu - sa to szczegóły w danym projekcie
-- unifikacja, to co wyróżnia strony użytkowników to tylko treść - czyli nasze zrealizowane projekty
-- wyszukiwarka po kategoriach np. informatyka, zdjęcia
-
-Wyróżniki od istniejących rozwiązań
-- Kreatory stron - u mnie będzie unifikacja strony - przejrzystość
-- Kreatory osi czasu - u mnie focus na ładnie wyglądające portfolio i realizowane projekty
-- ogłoszenia pracy - u mnie nie ma ogłoszeń tylko w klarowny sposób prezentują się osoby
-
-Dodatkowe pomysły:
-- możliwość tworzenia backupu podawanych stron?
+## Wyszukiwarka
+Ja zrobie to po prostu poprzez wbudowane indeksowanie tekstu w mongodb. Elasticsearch na pewno dziala lepiej ale musialbym wszystkie dane przeniesc. Plus uwaga springboot-data-elasticsearch dziala tylko z maven a nie gradle.
+Elasticsearch to dobra opcja na przyszlosc gdy bede potrzebowal lepszego systemu wyszukiwania lub bedzie bardzo duzo uzytkownikow i bedzie trzeba analizowac dane.
