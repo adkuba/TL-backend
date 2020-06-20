@@ -1,5 +1,7 @@
 package com.tl.backend.services;
 
+import com.stripe.exception.StripeException;
+import com.stripe.model.Subscription;
 import com.tl.backend.fileHandling.FileResource;
 import com.tl.backend.fileHandling.FileResourceRepository;
 import com.tl.backend.fileHandling.FileServiceImpl;
@@ -51,8 +53,17 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     @Override
-    public Optional<Timeline> getTimelineById(String id) {
-        return timelineRepository.findById(id);
+    public Timeline getTimelineById(String id) throws StripeException {
+        Optional<Timeline> optionalTimeline = timelineRepository.findById(id);
+        if (optionalTimeline.isPresent()){
+            Timeline timeline = optionalTimeline.get();
+            Subscription subscription = Subscription.retrieve(timeline.getUser().getSubscriptionID());
+            //tu mozna dodac wyjatek na admina
+            if (subscription.getStatus().equals("active")){
+                return timeline;
+            }
+        }
+        return null;
     }
 
     @Override

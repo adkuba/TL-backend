@@ -5,6 +5,7 @@ import com.tl.backend.fileHandling.FileResource;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
@@ -21,6 +22,7 @@ public class Event {
 
     private String title;
 
+    @DBRef
     private Timeline timeline;
 
     private String shortDescription;

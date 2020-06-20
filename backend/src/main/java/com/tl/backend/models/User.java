@@ -9,10 +9,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 @Document(collection = "users")
@@ -25,7 +22,9 @@ public class User {
 
     private String username;
 
-    private String fullName;
+    private String fullName = "";
+
+    private String subscriptionID = "";
 
     @JsonIgnore
     private String refreshToken;
@@ -40,6 +39,8 @@ public class User {
 
     @DBRef
     private Set<Role> roles = new HashSet<>();
+
+    private String stripeID;
 
     public User(String username, String email, String password) {
         this.username = username;

@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.index.TextIndexed;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
@@ -19,12 +20,14 @@ public class Timeline {
     @Id
     private String id;
 
+    @DBRef
     private User user;
 
     private String description;
 
     private String descriptionTitle;
 
+    @DBRef
     private Event event;
 
     private List<FileResource> pictures;

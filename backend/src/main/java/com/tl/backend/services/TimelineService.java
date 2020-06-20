@@ -1,5 +1,6 @@
 package com.tl.backend.services;
 
+import com.stripe.exception.StripeException;
 import com.tl.backend.models.Timeline;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -8,7 +9,7 @@ import java.util.Optional;
 
 public interface TimelineService {
 
-    Optional<Timeline> getTimelineById(String id);
+    Timeline getTimelineById(String id) throws StripeException;
 
     Timeline getTimelineByEventId(String eventId);
 

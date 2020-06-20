@@ -1,9 +1,17 @@
 package com.tl.backend.services;
 
+import com.stripe.exception.CardException;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
+import com.stripe.model.PaymentMethod;
+import com.stripe.model.Subscription;
+import com.stripe.param.PaymentMethodAttachParams;
 import com.tl.backend.models.Timeline;
 import com.tl.backend.models.User;
 import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
+import com.tl.backend.request.SubscriptionRequest;
+import com.tl.backend.response.SubscriptionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,8 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -44,7 +51,6 @@ public class UserServiceImpl implements UserService {
             User user = userOptional.get();
             user.setEmail(email);
             userRepository.save(user);
-            updateTimelinesUser(user);
             return true;
         }
         return false;
@@ -57,7 +63,6 @@ public class UserServiceImpl implements UserService {
             User user = userOptional.get();
             user.setFullName(fullName);
             userRepository.save(user);
-            updateTimelinesUser(user);
             return true;
         }
         return false;
@@ -78,12 +83,72 @@ public class UserServiceImpl implements UserService {
         return false;
     }
 
-    private void updateTimelinesUser(User user){
-        List<Timeline> timelines = timelineService.getUserTimelines(user.getUsername());
-        for (Timeline timeline : timelines){
-            timeline.setUser(user);
-            timelineRepository.save(timeline);
+    @Override
+    public String createSubscription(SubscriptionRequest subscriptionRequest) throws StripeException {
+        Optional<User> optionalUser = userRepository.findByUsername(subscriptionRequest.getUsername());
+        if (optionalUser.isPresent()){
+            User user = optionalUser.get();
+            Customer customer = Customer.retrieve(user.getStripeID());
+            try {
+                PaymentMethod pm = PaymentMethod.retrieve(subscriptionRequest.getPaymentMethodId());
+                pm.attach(PaymentMethodAttachParams.builder().setCustomer(customer.getId()).build());
+
+            } catch (CardException e){
+                return e.getLocalizedMessage();
+            }
+
+            Map<String, Object> customerParams = new HashMap<String, Object>();
+            Map<String, String> invoiceSettings = new HashMap<String, String>();
+            invoiceSettings.put("default_payment_method", subscriptionRequest.getPaymentMethodId());
+            customerParams.put("invoice_settings", invoiceSettings);
+            customer.update(customerParams);
+
+            Map<String, Object> item = new HashMap<>();
+            item.put("price", "price_1GvluCG6mQST9KMbBo0u3t74");
+            Map<String, Object> items = new HashMap<>();
+            items.put("0", item);
+            Map<String, Object> params = new HashMap<>();
+            params.put("customer", user.getStripeID());
+            params.put("items", items);
+
+            List<String> expandList = new ArrayList<>();
+            expandList.add("latest_invoice.payment_intent");
+            params.put("expand", expandList);
+
+            Subscription subscription = Subscription.create(params);
+            user.setSubscriptionID(subscription.getId());
+            userRepository.save(user);
+
+            return "OK";
         }
+        return "Can't find user";
+    }
+
+    @Override
+    public SubscriptionResponse getSubscription(String username) throws StripeException {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isPresent()){
+            User user = optionalUser.get();
+            Subscription subscription = Subscription.retrieve(user.getSubscriptionID());
+            SubscriptionResponse subscriptionResponse = new SubscriptionResponse();
+            subscriptionResponse.setStatus(subscription.getStatus());
+            return subscriptionResponse;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean cancelSubscription(String username) throws StripeException {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isPresent()){
+            User user = optionalUser.get();
+            Subscription subscription = Subscription.retrieve(user.getSubscriptionID());
+            Subscription deletedSubscription = subscription.cancel();
+            user.setSubscriptionID("");
+            userRepository.save(user);
+            return true;
+        }
+        return false;
     }
 
 }

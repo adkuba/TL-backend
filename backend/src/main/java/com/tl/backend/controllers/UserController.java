@@ -1,6 +1,8 @@
 package com.tl.backend.controllers;
 
+import com.stripe.exception.StripeException;
 import com.tl.backend.models.User;
+import com.tl.backend.request.SubscriptionRequest;
 import com.tl.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "api/users", method = {RequestMethod.POST, RequestMethod.DELETE})
@@ -36,6 +39,22 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @PostMapping(value = "/create-subscription")
+    public ResponseEntity<?> createSubscription(Authentication authentication, @RequestBody SubscriptionRequest subscriptionRequest) throws StripeException {
+        subscriptionRequest.setUsername(authentication.getName());
+        return new ResponseEntity<>(userService.createSubscription(subscriptionRequest) ,HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/get-subscription")
+    public ResponseEntity<?> getSubscription(Authentication authentication) throws StripeException {
+        return new ResponseEntity<>(userService.getSubscription(authentication.getName()) , HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/cancel-subscription")
+    public ResponseEntity<?> cancelSubscription(Authentication authentication) throws StripeException {
+        return new ResponseEntity<>(userService.cancelSubscription(authentication.getName()), HttpStatus.OK);
     }
 
     @PutMapping(value = "/name")

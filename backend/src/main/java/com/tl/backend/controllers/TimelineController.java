@@ -1,5 +1,6 @@
 package com.tl.backend.controllers;
 
+import com.stripe.exception.StripeException;
 import com.tl.backend.models.Timeline;
 import com.tl.backend.mappers.TimelineMapper;
 import com.tl.backend.models.User;
@@ -114,7 +115,7 @@ public class TimelineController {
         List<TimelineResponse> trendingTimelines = timelineMapper.timelinesResponse(timelineService.trendingTimelines());
 
         for (TimelineResponse timelineResponse : randomTimelines){
-            timelineResponse.setCategory("RANDOM");
+            timelineResponse.setCategory("SUGGESTED");
             timelineResponses.add(timelineResponse);
         }
         for (int i=0; i<2; i++){
@@ -150,12 +151,8 @@ public class TimelineController {
     }
 
     @GetMapping(value ="/public", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getTimelineById(@RequestParam String id){
-        Optional<Timeline> optionalTimeline = timelineService.getTimelineById(id);
-        if (optionalTimeline.isPresent()){
-            return ResponseEntity.ok(timelineMapper.timelineResponse(optionalTimeline.get()));
-        }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    public ResponseEntity<?> getTimelineById(@RequestParam String id) throws StripeException {
+        return ResponseEntity.ok(timelineMapper.timelineResponse(timelineService.getTimelineById(id)));
     }
 
     @GetMapping(value = "/public/event", produces = MediaType.APPLICATION_JSON_VALUE)

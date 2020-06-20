@@ -10,4 +10,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AppProperties {
     private String apiDomain;
     private String domain;
+    private String stripeKey;
 }
