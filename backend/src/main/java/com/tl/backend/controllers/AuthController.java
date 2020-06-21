@@ -37,6 +37,7 @@ import javax.validation.Valid;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -100,16 +101,20 @@ public class AuthController {
         Optional<User> optionalUser = userRepository.findUserByEmail(userDetails.getEmail());
         String fullName = "";
         List<String> likes = new ArrayList<>();
+        LocalDate userDate = null;
         if (optionalUser.isPresent()){
-            fullName = optionalUser.get().getFullName();
-            likes = optionalUser.get().getLikes();
+            User user = optionalUser.get();
+            fullName = user.getFullName();
+            likes = user.getLikes();
+            userDate = user.getCreationTime();
         }
 
         //refresh token
         String refreshToken = refreshUserToken(userDetails.getEmail());
         response.addCookie(createCookie("refresh_token", refreshToken, true));
 
-        return ResponseEntity.ok(new JwtResponse(likes,
+        return ResponseEntity.ok(new JwtResponse(userDate,
+                likes,
                 jwt,
                 creationTime,
                 userDetails.getUsername(),
@@ -137,16 +142,20 @@ public class AuthController {
             Optional<User> optionalUser = userRepository.findUserByEmail(requestedUser.getEmail());
             String fullName = "";
             List<String> likes = new ArrayList<>();
+            LocalDate userDate = null;
             if (optionalUser.isPresent()){
-                fullName = optionalUser.get().getFullName();
-                likes = optionalUser.get().getLikes();
+                User user = optionalUser.get();
+                fullName = user.getFullName();
+                likes = user.getLikes();
+                userDate = user.getCreationTime();
             }
 
             //refresh token
             String refreshToken = refreshUserToken(requestedUser.getEmail());
             response.addCookie(createCookie("refresh_token", refreshToken, true));
 
-            return ResponseEntity.ok(new JwtResponse(likes,
+            return ResponseEntity.ok(new JwtResponse(userDate,
+                    likes,
                     jwt,
                     creationTime,
                     requestedUser.getUsername(),

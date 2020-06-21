@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.util.*;
 
 
@@ -25,6 +26,8 @@ public class User {
     private String fullName = "";
 
     private String subscriptionID = "";
+
+    private LocalDate creationTime = LocalDate.now();
 
     @JsonIgnore
     private String refreshToken;

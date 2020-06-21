@@ -1,6 +1,8 @@
 package com.tl.backend.config;
 
 
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tl.backend.security.AuthEntryPointJwt;
 import com.tl.backend.security.AuthTokenFilter;
 import com.tl.backend.services.UserDetailsServiceImpl;
@@ -24,6 +26,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Collections;
+
 
 @Configuration
 @EnableWebSecurity

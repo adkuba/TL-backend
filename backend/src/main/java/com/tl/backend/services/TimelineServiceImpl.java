@@ -24,6 +24,8 @@ import org.springframework.data.mongodb.core.query.TextQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -57,10 +59,14 @@ public class TimelineServiceImpl implements TimelineService {
         Optional<Timeline> optionalTimeline = timelineRepository.findById(id);
         if (optionalTimeline.isPresent()){
             Timeline timeline = optionalTimeline.get();
-            Subscription subscription = Subscription.retrieve(timeline.getUser().getSubscriptionID());
-            //tu mozna dodac wyjatek na admina
-            if (subscription.getStatus().equals("active")){
+            //dodac wyjatek na admina!
+            if (Period.between(timeline.getUser().getCreationTime(), LocalDate.now()).getDays() <= 30){
                 return timeline;
+            } else {
+                Subscription subscription = Subscription.retrieve(timeline.getUser().getSubscriptionID());
+                if (subscription.getStatus().equals("active")){
+                    return timeline;
+                }
             }
         }
         return null;

@@ -5,6 +5,7 @@ import com.stripe.model.Subscription;
 import com.tl.backend.models.User;
 import com.tl.backend.request.SubscriptionRequest;
 import com.tl.backend.response.SubscriptionResponse;
+import org.springframework.http.ResponseEntity;
 
 public interface UserService {
 
@@ -16,7 +17,7 @@ public interface UserService {
 
     boolean changePassword(String username, String oldPassword, String newPassword);
 
-    String createSubscription(SubscriptionRequest subscriptionRequest) throws StripeException;
+    ResponseEntity<?> createSubscription(SubscriptionRequest subscriptionRequest) throws StripeException;
 
     SubscriptionResponse getSubscription(String username) throws StripeException;
 

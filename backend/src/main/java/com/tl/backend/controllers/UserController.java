@@ -44,7 +44,7 @@ public class UserController {
     @PostMapping(value = "/create-subscription")
     public ResponseEntity<?> createSubscription(Authentication authentication, @RequestBody SubscriptionRequest subscriptionRequest) throws StripeException {
         subscriptionRequest.setUsername(authentication.getName());
-        return new ResponseEntity<>(userService.createSubscription(subscriptionRequest) ,HttpStatus.OK);
+        return userService.createSubscription(subscriptionRequest);
     }
 
     @GetMapping(value = "/get-subscription")

@@ -13,6 +13,8 @@ import com.tl.backend.repositories.UserRepository;
 import com.tl.backend.request.SubscriptionRequest;
 import com.tl.backend.response.SubscriptionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -84,7 +86,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String createSubscription(SubscriptionRequest subscriptionRequest) throws StripeException {
+    public ResponseEntity<?> createSubscription(SubscriptionRequest subscriptionRequest) throws StripeException {
         Optional<User> optionalUser = userRepository.findByUsername(subscriptionRequest.getUsername());
         if (optionalUser.isPresent()){
             User user = optionalUser.get();
@@ -94,7 +96,7 @@ public class UserServiceImpl implements UserService {
                 pm.attach(PaymentMethodAttachParams.builder().setCustomer(customer.getId()).build());
 
             } catch (CardException e){
-                return e.getLocalizedMessage();
+                return new ResponseEntity<>(e.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
             }
 
             Map<String, Object> customerParams = new HashMap<String, Object>();
@@ -119,9 +121,9 @@ public class UserServiceImpl implements UserService {
             user.setSubscriptionID(subscription.getId());
             userRepository.save(user);
 
-            return "OK";
+            return new ResponseEntity<>(subscription.toJson(), HttpStatus.OK);
         }
-        return "Can't find user";
+        return new ResponseEntity<>("Can't find user", HttpStatus.BAD_REQUEST);
     }
 
     @Override
