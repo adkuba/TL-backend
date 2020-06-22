@@ -25,6 +25,8 @@ public class User {
 
     private String fullName = "";
 
+    private List<InteractionEvent> followers = new ArrayList<>();
+
     private String subscriptionID = "";
 
     private LocalDate creationTime = LocalDate.now();

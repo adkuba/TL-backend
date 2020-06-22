@@ -6,6 +6,7 @@ import com.stripe.model.Customer;
 import com.stripe.model.PaymentMethod;
 import com.stripe.model.Subscription;
 import com.stripe.param.PaymentMethodAttachParams;
+import com.tl.backend.models.InteractionEvent;
 import com.tl.backend.models.Timeline;
 import com.tl.backend.models.User;
 import com.tl.backend.repositories.TimelineRepository;
@@ -42,8 +43,60 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<InteractionEvent> followUser(String username, String followerUsername) {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        Optional<User> optionalFollowerUser = userRepository.findByUsername(followerUsername);
+        if (optionalUser.isPresent() && optionalFollowerUser.isPresent()){
+            User user = optionalUser.get();
+            User follower = optionalFollowerUser.get();
+            for (InteractionEvent interactionEvent : user.getFollowers()) {
+                //already following need to unfollow
+                if (interactionEvent.getUserId().equals(followerUsername)){
+                    //deleting from user
+                    List<InteractionEvent> followers = user.getFollowers();
+                    followers.remove(interactionEvent);
+                    user.setFollowers(followers);
+                    userRepository.save(user);
+                    //deleting from follower
+                    followers = follower.getFollowers();
+                    InteractionEvent event = new InteractionEvent();
+                    event.setFollow(username);
+                    event.setDate(interactionEvent.getDate());
+                    followers.remove(event);
+                    follower.setFollowers(followers);
+                    userRepository.save(follower);
+                    return followers;
+                }
+            }
+            //need to follow
+            //user
+            List<InteractionEvent> followers = user.getFollowers();
+            InteractionEvent event = new InteractionEvent();
+            event.setUserId(followerUsername);
+            followers.add(event);
+            user.setFollowers(followers);
+            userRepository.save(user);
+            //follower
+            followers = follower.getFollowers();
+            event = new InteractionEvent();
+            event.setFollow(username);
+            followers.add(event);
+            follower.setFollowers(followers);
+            userRepository.save(follower);
+            return followers;
+        }
+        return null;
+    }
+
+    @Override
     public void deleteByUserId(String id) {
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public User checkUser(String username) {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        return optionalUser.orElse(null);
     }
 
     @Override

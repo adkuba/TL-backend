@@ -71,6 +71,7 @@ class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/timelines/public/**").permitAll()
                 .antMatchers("/api/events/public/**").permitAll()
                 .antMatchers("/api/statistics/public/**").permitAll()
+                .antMatchers("/api/users/public/**").permitAll()
                 .antMatchers("/files/**").permitAll() //UWAGA! tylko do tesow??
                 .anyRequest().authenticated();
 

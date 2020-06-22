@@ -1,5 +1,6 @@
 package com.tl.backend.response;
 
+import com.tl.backend.models.InteractionEvent;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -17,9 +18,12 @@ public class JwtResponse {
     private Date creationTime;
     private LocalDate userDate;
     private List<String> likes;
+    private List<InteractionEvent> followers;
+    //dodac po prostu user response!!?
 
-    public JwtResponse(LocalDate userDate, List<String> likes, String accessToken, Date creationTime, String username, String email, List<String> roles, String fullName) {
+    public JwtResponse(List<InteractionEvent> followers, LocalDate userDate, List<String> likes, String accessToken, Date creationTime, String username, String email, List<String> roles, String fullName) {
         this.token = accessToken;
+        this.followers = followers;
         this.creationTime = creationTime;
         this.userDate = userDate;
         this.username = username;

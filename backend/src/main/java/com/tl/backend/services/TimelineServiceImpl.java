@@ -169,6 +169,7 @@ public class TimelineServiceImpl implements TimelineService {
 
     @Override
     public List<Timeline> getUserTimelines(String username) {
+        //NIEOPTYMALNE
         List<Timeline> allTimelines = timelineRepository.findAll();
         List<Timeline> timelines = new ArrayList<>();
         for (Timeline timeline : allTimelines){

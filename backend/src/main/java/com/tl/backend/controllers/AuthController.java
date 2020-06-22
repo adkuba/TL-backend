@@ -4,6 +4,7 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.tl.backend.config.AppProperties;
 import com.tl.backend.models.ERole;
+import com.tl.backend.models.InteractionEvent;
 import com.tl.backend.models.Role;
 import com.tl.backend.models.User;
 import com.tl.backend.repositories.RoleRepository;
@@ -102,18 +103,21 @@ public class AuthController {
         String fullName = "";
         List<String> likes = new ArrayList<>();
         LocalDate userDate = null;
+        List<InteractionEvent> followers = new ArrayList<>();
         if (optionalUser.isPresent()){
             User user = optionalUser.get();
             fullName = user.getFullName();
             likes = user.getLikes();
             userDate = user.getCreationTime();
+            followers = user.getFollowers();
         }
 
         //refresh token
         String refreshToken = refreshUserToken(userDetails.getEmail());
         response.addCookie(createCookie("refresh_token", refreshToken, true));
 
-        return ResponseEntity.ok(new JwtResponse(userDate,
+        return ResponseEntity.ok(new JwtResponse(followers,
+                userDate,
                 likes,
                 jwt,
                 creationTime,
@@ -143,18 +147,21 @@ public class AuthController {
             String fullName = "";
             List<String> likes = new ArrayList<>();
             LocalDate userDate = null;
+            List<InteractionEvent> followers = new ArrayList<>();
             if (optionalUser.isPresent()){
                 User user = optionalUser.get();
                 fullName = user.getFullName();
                 likes = user.getLikes();
                 userDate = user.getCreationTime();
+                followers = user.getFollowers();
             }
 
             //refresh token
             String refreshToken = refreshUserToken(requestedUser.getEmail());
             response.addCookie(createCookie("refresh_token", refreshToken, true));
 
-            return ResponseEntity.ok(new JwtResponse(userDate,
+            return ResponseEntity.ok(new JwtResponse(followers,
+                    userDate,
                     likes,
                     jwt,
                     creationTime,

@@ -1,6 +1,7 @@
 package com.tl.backend.controllers;
 
 import com.stripe.exception.StripeException;
+import com.tl.backend.mappers.UserMapper;
 import com.tl.backend.models.User;
 import com.tl.backend.request.SubscriptionRequest;
 import com.tl.backend.services.UserService;
@@ -20,9 +21,11 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+    private final UserMapper userMapper;
 
     @Autowired
-    public UserController(UserService userService){
+    public UserController(UserMapper userMapper, UserService userService){
+        this.userMapper = userMapper;
         this.userService = userService;
     }
 
@@ -71,5 +74,20 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @GetMapping(value = "/public/{username}")
+    public ResponseEntity<?> checkUser(@PathVariable String username){
+        User user = userService.checkUser(username);
+        if (user == null){
+            return new ResponseEntity<>(null, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(userMapper.userResponse(user), HttpStatus.OK);
+        }
+    }
+
+    @PostMapping(value = "/follow/{username}")
+    public ResponseEntity<?> followUser(Authentication authentication, @PathVariable String username){
+        return new ResponseEntity<>(userService.followUser(username, authentication.getName()), HttpStatus.OK);
     }
 }

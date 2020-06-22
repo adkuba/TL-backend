@@ -101,8 +101,8 @@ public class TimelineController {
     }
 
     @GetMapping(value = "/public/{username}")
-    public List<Timeline> userTimelines(@PathVariable String username){
-        return timelineService.getUserTimelines(username);
+    public List<TimelineResponse> userTimelines(@PathVariable String username){
+        return timelineMapper.timelinesResponse(timelineService.getUserTimelines(username));
     }
 
     @GetMapping(value = "/public/homepage")
