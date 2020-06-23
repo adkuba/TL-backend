@@ -5,13 +5,17 @@ import com.tl.backend.fileHandling.FileResourceRepository;
 import com.tl.backend.fileHandling.FileService;
 import com.tl.backend.fileHandling.FileServiceImpl;
 import com.tl.backend.models.Event;
+import com.tl.backend.models.InteractionEvent;
+import com.tl.backend.models.Statistics;
 import com.tl.backend.models.Timeline;
 import com.tl.backend.repositories.EventRepository;
+import com.tl.backend.repositories.StatisticsRepository;
 import com.tl.backend.repositories.TimelineRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,10 +27,12 @@ public class EventServiceImpl implements EventService {
     private final FileServiceImpl fileService;
     private final FileResourceRepository fileResourceRepository;
     private final TimelineRepository timelineRepository;
+    private final StatisticsRepository statisticsRepository;
 
     @Autowired
-    public EventServiceImpl(TimelineRepository timelineRepository, FileResourceRepository fileResourceRepository, EventRepository eventRepository, FileServiceImpl fileService){
+    public EventServiceImpl(StatisticsRepository statisticsRepository, TimelineRepository timelineRepository, FileResourceRepository fileResourceRepository, EventRepository eventRepository, FileServiceImpl fileService){
         this.eventRepository = eventRepository;
+        this.statisticsRepository = statisticsRepository;
         this.fileResourceRepository = fileResourceRepository;
         this.fileService = fileService;
         this.timelineRepository = timelineRepository;
@@ -41,8 +47,20 @@ public class EventServiceImpl implements EventService {
             Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
             if (optionalTimeline.isPresent()){
                 Timeline timeline = optionalTimeline.get();
-                timeline.setViews(timeline.getViews() + 1);
+                InteractionEvent viewEvent = new InteractionEvent();
+                List<InteractionEvent> views = timeline.getViewsDetails();
+                views.add(viewEvent);
+                timeline.setViewsDetails(views);
+                timeline.viewsNumber();
                 timelineRepository.save(timeline);
+
+                //main stats
+                Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(LocalDate.now());
+                if (optionalStatistics.isPresent()){
+                    Statistics statistics = optionalStatistics.get();
+                    statistics.setTotalTimelinesViews(statistics.getTotalTimelinesViews() + 1);
+                    statisticsRepository.save(statistics);
+                }
             }
         }
         return events;

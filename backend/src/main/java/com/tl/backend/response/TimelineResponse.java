@@ -1,6 +1,7 @@
 package com.tl.backend.response;
 
 import com.tl.backend.models.Event;
+import com.tl.backend.models.InteractionEvent;
 import com.tl.backend.models.User;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,8 +20,8 @@ public class TimelineResponse {
     private String descriptionTitle;
     private String event;
     private long views;
-    private String category;
     private long trendingViews;
-    private long likes;
+    private String category;
+    private List<InteractionEvent> likes;
     private List<URL> pictures;
 }

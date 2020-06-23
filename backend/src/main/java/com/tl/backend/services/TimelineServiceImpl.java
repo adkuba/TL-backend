@@ -6,6 +6,7 @@ import com.tl.backend.fileHandling.FileResource;
 import com.tl.backend.fileHandling.FileResourceRepository;
 import com.tl.backend.fileHandling.FileServiceImpl;
 import com.tl.backend.models.Event;
+import com.tl.backend.models.InteractionEvent;
 import com.tl.backend.models.Timeline;
 import com.tl.backend.models.User;
 import com.tl.backend.repositories.EventRepository;
@@ -244,24 +245,36 @@ public class TimelineServiceImpl implements TimelineService {
 
     private List<String> likeOperation(Integer add, String timelineId, String username){
         Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
-        if (optionalTimeline.isPresent()){
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalTimeline.isPresent() && optionalUser.isPresent()){
+            User user = optionalUser.get();
             Timeline timeline = optionalTimeline.get();
-            timeline.setLikes(timeline.getLikes()+add);
-            timelineRepository.save(timeline);
 
-            Optional<User> optionalUser = userRepository.findByUsername(username);
-            if (optionalUser.isPresent()){
-                User user = optionalUser.get();
-                List<String> likes = user.getLikes();
-                if (add == 1){
-                    likes.add(timelineId);
+            if (add == 1){
+                List<InteractionEvent> likes = timeline.getLikes();
+                InteractionEvent like = new InteractionEvent();
+                like.setUserId(username);
+                likes.add(like);
+                timeline.setLikes(likes);
+                timelineRepository.save(timeline);
 
-                } else {
-                    likes.remove(timelineId);
-                }
-                user.setLikes(likes);
+                List<String> likesUser = user.getLikes();
+                likesUser.add(timelineId);
+                user.setLikes(likesUser);
                 userRepository.save(user);
-                return likes;
+                return  likesUser;
+
+            } else {
+                List<InteractionEvent> likes = timeline.getLikes();
+                likes.removeIf(like -> like.getUserId().equals(username));
+                timeline.setLikes(likes);
+                timelineRepository.save(timeline);
+
+                List<String> likesUser = user.getLikes();
+                likesUser.removeIf(like -> like.equals(timelineId));
+                user.setLikes(likesUser);
+                userRepository.save(user);
+                return  likesUser;
             }
         }
         return null;

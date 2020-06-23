@@ -20,18 +20,11 @@ public class Event {
 
     @Id
     private String id;
-
     private String title;
-
     private String timelineId;
-
     private String shortDescription;
-
     private String description;
-
     private HashMap<String, String> links;
-
     private List<FileResource> pictures;
-
     private LocalDate date;
 }

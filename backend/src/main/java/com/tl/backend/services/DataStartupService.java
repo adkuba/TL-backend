@@ -66,6 +66,7 @@ public class DataStartupService {
 
             Statistics statistics = new Statistics();
             statistics.setDay(LocalDate.now());
+            statistics.setNumberOfUsers(1);
             statisticsRepository.save(statistics);
 
             User kuba = new User();

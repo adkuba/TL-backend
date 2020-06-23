@@ -4,11 +4,9 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.tl.backend.config.AppProperties;
 import com.tl.backend.mappers.UserMapper;
-import com.tl.backend.models.ERole;
-import com.tl.backend.models.InteractionEvent;
-import com.tl.backend.models.Role;
-import com.tl.backend.models.User;
+import com.tl.backend.models.*;
 import com.tl.backend.repositories.RoleRepository;
+import com.tl.backend.repositories.StatisticsRepository;
 import com.tl.backend.repositories.UserRepository;
 import com.tl.backend.request.LoginRequest;
 import com.tl.backend.request.SignupRequest;
@@ -55,10 +53,12 @@ public class AuthController {
     private final RoleRepository roleRepository;
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
+    private final StatisticsRepository statisticsRepository;
 
     @Autowired
-    public AuthController(UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
+    public AuthController(StatisticsRepository statisticsRepository, UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
         this.appProperties = appProperties;
+        this.statisticsRepository = statisticsRepository;
         this.userMapper = userMapper;
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
@@ -193,6 +193,14 @@ public class AuthController {
 
         user.setRoles(roles);
         userRepository.save(user);
+
+        //main stats
+        Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(LocalDate.now());
+        if (optionalStatistics.isPresent()){
+            Statistics statistics = optionalStatistics.get();
+            statistics.setNumberOfUsers(statistics.getNumberOfUsers() + 1);
+            statisticsRepository.save(statistics);
+        }
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
