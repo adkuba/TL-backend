@@ -13,8 +13,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class EventResponse implements Serializable {
-    private String id;
 
+    private String id;
     private String title;
     private String shortDescription;
     private String description;

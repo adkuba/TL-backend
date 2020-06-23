@@ -1,6 +1,7 @@
 package com.tl.backend.response;
 
 import com.tl.backend.models.InteractionEvent;
+import com.tl.backend.models.Role;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,4 +16,6 @@ public class UserResponse {
     private String fullName;
     private LocalDate creationTime;
     private List<InteractionEvent> followers;
+    private List<String> roles;
+    private List<String> likes;
 }

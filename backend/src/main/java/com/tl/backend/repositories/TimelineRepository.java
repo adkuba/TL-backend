@@ -11,8 +11,8 @@ import java.util.Optional;
 
 public interface TimelineRepository extends MongoRepository<Timeline, String> {
 
-    @Query("{ 'event.id' : ?0 }")
-    Optional<Timeline> findOneByEventId(@Param("id") ObjectId id);
+    @Query("{ 'eventId' : ?0 }")
+    Optional<Timeline> findOneByEventId(String id);
 
     boolean existsById(String id);
 }

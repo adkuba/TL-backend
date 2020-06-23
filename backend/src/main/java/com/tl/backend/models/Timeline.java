@@ -3,6 +3,7 @@ package com.tl.backend.models;
 import com.tl.backend.fileHandling.FileResource;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.index.TextIndexed;
@@ -27,8 +28,7 @@ public class Timeline {
 
     private String descriptionTitle;
 
-    @DBRef
-    private Event event;
+    private String eventId;
 
     private List<FileResource> pictures;
 

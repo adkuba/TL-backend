@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface EventRepository extends MongoRepository<Event, String> {
 
-    @Query("{ 'timeline.id' : ?0 }")
+    @Query("{ 'timelineId' : ?0 }")
     List<Event> findAllByTimelineId(String id);
 
 }

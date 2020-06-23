@@ -105,12 +105,13 @@ public class DataStartupService {
             trackingEventLinks.put("Repozytorium", "link do repoo");
             trackingEventLinks.put("Artykul", "link go medium");
             trackingEvent.setLinks(trackingEventLinks);
-            trackingEvent.setTimeline(timeline);
+            trackingEvent.setTimelineId(timeline.getId());
             eventRepository.save(trackingEvent);
 
             Timeline subTimelineTrackingEvent = new Timeline();
             subTimelineTrackingEvent.setId("kubatl-sub1");
-            subTimelineTrackingEvent.setEvent(trackingEvent);
+            subTimelineTrackingEvent.setEventId(trackingEvent.getId());
+            subTimelineTrackingEvent.setEventId(trackingEvent.getId());
             timelineRepository.save(subTimelineTrackingEvent);
 
             Event subTrackingEvent = new Event();
@@ -120,7 +121,7 @@ public class DataStartupService {
             subTrackingEvent.setDate(LocalDate.of(2019, Month.FEBRUARY, 10));
             HashMap<String, String> subTrackingEventLinks = new HashMap<String, String>();
             subTrackingEvent.setLinks(subTrackingEventLinks);
-            subTrackingEvent.setTimeline(subTimelineTrackingEvent);
+            subTrackingEvent.setTimelineId(subTimelineTrackingEvent.getId());
             eventRepository.save(subTrackingEvent);
 
             //matko ale kiepskie nazwy
@@ -132,7 +133,7 @@ public class DataStartupService {
             HashMap<String, String> subTrackingEventLinks2 = new HashMap<String, String>();
             subTrackingEventLinks2.put("Demo", "link do demo");
             subTrackingEvent2.setLinks(subTrackingEventLinks2);
-            subTrackingEvent2.setTimeline(subTimelineTrackingEvent);
+            subTrackingEvent2.setTimelineId(subTimelineTrackingEvent.getId());
             eventRepository.save(subTrackingEvent2);
 
             Event gameEvent = new Event();
@@ -144,7 +145,7 @@ public class DataStartupService {
             gameEventLinks.put("Repozytorium", "link do repoo");
             gameEventLinks.put("Google Play", "link go playa");
             gameEvent.setLinks(gameEventLinks);
-            gameEvent.setTimeline(timeline);
+            gameEvent.setTimelineId(timeline.getId());
             eventRepository.save(gameEvent);
         }
     }

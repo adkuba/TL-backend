@@ -3,6 +3,7 @@ package com.tl.backend.controllers;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.tl.backend.config.AppProperties;
+import com.tl.backend.mappers.UserMapper;
 import com.tl.backend.models.ERole;
 import com.tl.backend.models.InteractionEvent;
 import com.tl.backend.models.Role;
@@ -13,6 +14,7 @@ import com.tl.backend.request.LoginRequest;
 import com.tl.backend.request.SignupRequest;
 import com.tl.backend.response.JwtResponse;
 import com.tl.backend.response.MessageResponse;
+import com.tl.backend.response.UserResponse;
 import com.tl.backend.security.JwtUtils;
 import com.tl.backend.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,13 +51,15 @@ public class AuthController {
     private final AppProperties appProperties;
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
     private final RoleRepository roleRepository;
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
 
     @Autowired
-    public AuthController(AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
+    public AuthController(UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
         this.appProperties = appProperties;
+        this.userMapper = userMapper;
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -95,36 +99,20 @@ public class AuthController {
         String jwt = jwtUtils.generateJwtToken(authentication);
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
 
         Optional<User> optionalUser = userRepository.findUserByEmail(userDetails.getEmail());
-        String fullName = "";
-        List<String> likes = new ArrayList<>();
-        LocalDate userDate = null;
-        List<InteractionEvent> followers = new ArrayList<>();
+        UserResponse userResponse = new UserResponse();
         if (optionalUser.isPresent()){
-            User user = optionalUser.get();
-            fullName = user.getFullName();
-            likes = user.getLikes();
-            userDate = user.getCreationTime();
-            followers = user.getFollowers();
+            userResponse = userMapper.userResponse(optionalUser.get());
         }
 
         //refresh token
         String refreshToken = refreshUserToken(userDetails.getEmail());
         response.addCookie(createCookie("refresh_token", refreshToken, true));
 
-        return ResponseEntity.ok(new JwtResponse(followers,
-                userDate,
-                likes,
-                jwt,
+        return ResponseEntity.ok(new JwtResponse(jwt,
                 creationTime,
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                roles,
-                fullName));
+                userResponse));
     }
 
     @PostMapping("/refreshToken")
@@ -138,37 +126,20 @@ public class AuthController {
             //tylko po username
             Date creationTime = new Date();
             String jwt = jwtUtils.refreshJwtToken(requestedUser.getUsername());
-            List<String> roles = requestedUser.getRoles().stream()
-                    .map(Role::getName)
-                    .map(ERole::toString)
-                    .collect(Collectors.toList());
 
             Optional<User> optionalUser = userRepository.findUserByEmail(requestedUser.getEmail());
-            String fullName = "";
-            List<String> likes = new ArrayList<>();
-            LocalDate userDate = null;
-            List<InteractionEvent> followers = new ArrayList<>();
+            UserResponse userResponse = new UserResponse();
             if (optionalUser.isPresent()){
-                User user = optionalUser.get();
-                fullName = user.getFullName();
-                likes = user.getLikes();
-                userDate = user.getCreationTime();
-                followers = user.getFollowers();
+                userResponse = userMapper.userResponse(optionalUser.get());
             }
 
             //refresh token
             String refreshToken = refreshUserToken(requestedUser.getEmail());
             response.addCookie(createCookie("refresh_token", refreshToken, true));
 
-            return ResponseEntity.ok(new JwtResponse(followers,
-                    userDate,
-                    likes,
-                    jwt,
+            return ResponseEntity.ok(new JwtResponse(jwt,
                     creationTime,
-                    requestedUser.getUsername(),
-                    requestedUser.getEmail(),
-                    roles,
-                    fullName));
+                    userResponse));
 
         }else
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid refresh token!");

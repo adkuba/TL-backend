@@ -11,7 +11,7 @@ import org.mapstruct.ReportingPolicy;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring", uses = {FileResourceMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", uses = {FileResourceMapper.class, UserMapper.class}, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface TimelineMapper {
 
     @BeanMapping(resultType = TimelineResponse.class)

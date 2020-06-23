@@ -6,7 +6,7 @@ import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", uses = UserRolesMapper.class, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
 
     @BeanMapping(resultType = UserResponse.class)

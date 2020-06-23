@@ -74,15 +74,8 @@ public class TimelineServiceImpl implements TimelineService {
 
     @Override
     public Timeline getTimelineByEventId(String eventId) {
-        List<Timeline> timelines = timelineRepository.findAll();
-        for (Timeline timeline : timelines){
-            if (timeline.getEvent() != null) {
-                if (timeline.getEvent().getId().equals(eventId)){
-                    return timeline;
-                }
-            }
-        }
-        return null;
+        Optional<Timeline> optionalTimeline = timelineRepository.findOneByEventId(eventId);
+        return optionalTimeline.orElse(null);
     }
 
     @Override
@@ -101,7 +94,7 @@ public class TimelineServiceImpl implements TimelineService {
 
             List<Event> events = eventRepository.findAllByTimelineId(timeline.getId());
             for (Event event : events){
-                Optional<Timeline> optionalSubTimeline = timelineRepository.findOneByEventId(new ObjectId(event.getId()));
+                Optional<Timeline> optionalSubTimeline = timelineRepository.findOneByEventId(event.getId());
                 if (optionalSubTimeline.isPresent()){
                     Timeline subTimeline = optionalSubTimeline.get();
                     List<Event> subEvents = eventRepository.findAllByTimelineId(subTimeline.getId());
