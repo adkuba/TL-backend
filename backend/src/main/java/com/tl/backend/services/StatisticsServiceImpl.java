@@ -1,6 +1,7 @@
 package com.tl.backend.services;
 
 import com.tl.backend.models.InteractionEvent;
+import com.tl.backend.models.Review;
 import com.tl.backend.models.Statistics;
 import com.tl.backend.models.Timeline;
 import com.tl.backend.repositories.StatisticsRepository;
@@ -37,6 +38,18 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public List<Statistics> getAllStats() {
         return statisticsRepository.findAll();
+    }
+
+    @Override
+    public void addReview(Review review) {
+        Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(LocalDate.now());
+        if (optionalStatistics.isPresent()){
+            Statistics statistics = optionalStatistics.get();
+            List<Review> reviews = statistics.getReviews();
+            reviews.add(review);
+            statistics.setReviews(reviews);
+            statisticsRepository.save(statistics);
+        }
     }
 
     //everyday at 23:00?

@@ -20,4 +20,5 @@ public class Statistics {
     private long mainPageViews = 0;
     private long numberOfUsers = 0;
     private LocalDate day;
+    private List<Review> reviews = new ArrayList<>();
 }

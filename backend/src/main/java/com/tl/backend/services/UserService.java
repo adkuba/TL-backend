@@ -14,11 +14,13 @@ public interface UserService {
 
     List<InteractionEvent> followUser(String username, String followerUsername);
 
-    void deleteByUserId(String id);
+    List<User> getAllUsers();
+
+    ResponseEntity<?> deleteByUsername(String username);
 
     User checkUser(String username);
 
-    boolean changeEmail(String username, String email);
+    ResponseEntity<?> changeEmail(String username, String email);
 
     boolean changeFullName(String username, String fullName);
 
@@ -26,7 +28,7 @@ public interface UserService {
 
     ResponseEntity<?> createSubscription(SubscriptionRequest subscriptionRequest) throws StripeException;
 
-    SubscriptionResponse getSubscription(String username) throws StripeException;
+    ResponseEntity<?> getSubscription(String username) throws StripeException;
 
     boolean cancelSubscription(String username) throws StripeException;
 }

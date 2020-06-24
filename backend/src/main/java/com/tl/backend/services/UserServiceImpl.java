@@ -89,8 +89,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteByUserId(String id) {
-        userRepository.deleteById(id);
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public ResponseEntity<?> deleteByUsername(String username) {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isPresent()){
+            try {
+                Customer customer = Customer.retrieve(optionalUser.get().getStripeID());
+                customer.delete();
+
+            } catch (StripeException e) {
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            }
+            userRepository.delete(optionalUser.get());
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Override
@@ -100,15 +116,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean changeEmail(String username, String email) {
+    public ResponseEntity<?> changeEmail(String username, String email) {
         Optional<User> userOptional = userRepository.findByUsername(username);
         if(userOptional.isPresent()){
             User user = userOptional.get();
             user.setEmail(email);
-            userRepository.save(user);
-            return true;
+            try {
+                Customer customer = Customer.retrieve(user.getStripeID());
+                Map<String, Object> params = new HashMap<>();
+                params.put("email", email);
+                customer.update(params);
+                userRepository.save(user);
+                return new ResponseEntity<>(HttpStatus.OK);
+
+            } catch (StripeException e) {
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            }
         }
-        return false;
+        return new ResponseEntity<>("Can't find user", HttpStatus.BAD_REQUEST);
     }
 
     @Override
@@ -180,16 +205,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public SubscriptionResponse getSubscription(String username) throws StripeException {
+    public ResponseEntity<?> getSubscription(String username) {
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isPresent()){
             User user = optionalUser.get();
-            Subscription subscription = Subscription.retrieve(user.getSubscriptionID());
-            SubscriptionResponse subscriptionResponse = new SubscriptionResponse();
-            subscriptionResponse.setStatus(subscription.getStatus());
-            return subscriptionResponse;
+            try {
+                Subscription subscription = Subscription.retrieve(user.getSubscriptionID());
+                SubscriptionResponse subscriptionResponse = new SubscriptionResponse();
+                subscriptionResponse.setStatus(subscription.getStatus());
+                return new ResponseEntity<>(subscriptionResponse, HttpStatus.OK);
+
+            } catch (StripeException e) {
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            }
         }
-        return null;
+        return new ResponseEntity<>("Can't find user", HttpStatus.BAD_REQUEST);
     }
 
     @Override

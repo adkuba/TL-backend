@@ -29,19 +29,22 @@ public class UserController {
         this.userService = userService;
     }
 
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping(value = "/{username}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteUser(@PathVariable String id){
-        userService.deleteByUserId(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<?> deleteUser(@PathVariable String username){
+        userService.deleteByUsername(username);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAllUsers(){
+        return new ResponseEntity<>(userMapper.usersResponse(userService.getAllUsers()), HttpStatus.OK);
     }
 
     @PutMapping(value = "/email")
     public ResponseEntity<?> changeEmail(Authentication authentication, @RequestParam String email){
-        if (userService.changeEmail(authentication.getName(), email)){
-            return new ResponseEntity<>(HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        return userService.changeEmail(authentication.getName(), email);
     }
 
     @PostMapping(value = "/create-subscription")
@@ -52,7 +55,7 @@ public class UserController {
 
     @GetMapping(value = "/get-subscription")
     public ResponseEntity<?> getSubscription(Authentication authentication) throws StripeException {
-        return new ResponseEntity<>(userService.getSubscription(authentication.getName()) , HttpStatus.OK);
+        return userService.getSubscription(authentication.getName());
     }
 
     @PostMapping(value = "/cancel-subscription")

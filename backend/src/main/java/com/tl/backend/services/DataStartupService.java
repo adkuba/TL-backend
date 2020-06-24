@@ -99,7 +99,6 @@ public class DataStartupService {
 
             Event trackingEvent = new Event();
             trackingEvent.setTitle("Object Tracking");
-            trackingEvent.setShortDescription("Project using machine learning.");
             trackingEvent.setDescription(lorem);
             trackingEvent.setDate(LocalDate.of(2019, Month.OCTOBER, 20));
             HashMap<String, String> trackingEventLinks = new HashMap<String, String>();
@@ -117,7 +116,6 @@ public class DataStartupService {
 
             Event subTrackingEvent = new Event();
             subTrackingEvent.setTitle("Aplikacja");
-            subTrackingEvent.setShortDescription("Aplikacja na IOSa");
             subTrackingEvent.setDescription(lorem.substring(0, lorem.length()/2));
             subTrackingEvent.setDate(LocalDate.of(2019, Month.FEBRUARY, 10));
             HashMap<String, String> subTrackingEventLinks = new HashMap<String, String>();
@@ -128,7 +126,6 @@ public class DataStartupService {
             //matko ale kiepskie nazwy
             Event subTrackingEvent2 = new Event();
             subTrackingEvent2.setTitle("AI");
-            subTrackingEvent2.setShortDescription("Wykorzystanie uczenia maszynowego");
             subTrackingEvent2.setDescription(lorem.substring(0, lorem.length()/2));
             subTrackingEvent2.setDate(LocalDate.of(2019, Month.JULY, 10));
             HashMap<String, String> subTrackingEventLinks2 = new HashMap<String, String>();
@@ -139,7 +136,6 @@ public class DataStartupService {
 
             Event gameEvent = new Event();
             gameEvent.setTitle("Gravity");
-            gameEvent.setShortDescription("Game created in Unity");
             gameEvent.setDescription(lorem);
             gameEvent.setDate(LocalDate.of(2020, Month.FEBRUARY, 20));
             HashMap<String, String> gameEventLinks = new HashMap<String, String>();

@@ -22,7 +22,6 @@ public class Event {
     private String id;
     private String title;
     private String timelineId;
-    private String shortDescription;
     private String description;
     private HashMap<String, String> links;
     private List<FileResource> pictures;
