@@ -1,13 +1,16 @@
 package com.tl.backend.controllers;
 
 import com.stripe.exception.StripeException;
+import com.tl.backend.mappers.UserMapper;
 import com.tl.backend.models.Timeline;
 import com.tl.backend.mappers.TimelineMapper;
 import com.tl.backend.models.User;
 import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
 import com.tl.backend.response.TimelineResponse;
+import com.tl.backend.response.UserResponse;
 import com.tl.backend.services.TimelineService;
+import com.tl.backend.services.UserService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,10 +32,14 @@ public class TimelineController {
     private final TimelineMapper timelineMapper;
     private final UserRepository userRepository;
     private final TimelineRepository timelineRepository;
+    private final UserService userService;
+    private final UserMapper userMapper;
 
     @Autowired
-    public TimelineController(TimelineService timelineService, TimelineMapper timelineMapper, UserRepository userRepository, TimelineRepository timelineRepository){
+    public TimelineController(UserMapper userMapper, UserService userService, TimelineService timelineService, TimelineMapper timelineMapper, UserRepository userRepository, TimelineRepository timelineRepository){
         this.timelineService = timelineService;
+        this.userMapper = userMapper;
+        this.userService = userService;
         this.timelineMapper = timelineMapper;
         this.userRepository = userRepository;
         this.timelineRepository = timelineRepository;
@@ -104,6 +111,32 @@ public class TimelineController {
     @GetMapping(value = "/public/{username}")
     public List<TimelineResponse> userTimelines(@PathVariable String username){
         return timelineMapper.timelinesResponse(timelineService.getUserTimelines(username));
+    }
+
+    @GetMapping(value = "/public/homepage/special")
+    public ResponseEntity<?> homepageSpecial(){
+        Random r = new Random();
+        switch (r.nextInt((3 - 1) + 1) + 1){
+            case 1:
+                List<TimelineResponse> popularTimelines = timelineMapper.timelinesResponse(timelineService.popularTimelines());
+                Collections.shuffle(popularTimelines);
+                if (popularTimelines.size() > 5){
+                    popularTimelines = popularTimelines.subList(0, 5);
+                }
+                return new ResponseEntity<>(popularTimelines, HttpStatus.OK);
+            case 2:
+                List<UserResponse> newUsers = userMapper.usersResponse(userService.getNewUsers());
+                Collections.shuffle(newUsers);
+                if (newUsers.size() > 5){
+                    newUsers = newUsers.subList(0, 5);
+                }
+                return new ResponseEntity<>(newUsers, HttpStatus.OK);
+            case 3:
+                List<UserResponse> randomUsers = userMapper.usersResponse(userService.getRandomUsers());
+                Collections.shuffle(randomUsers);
+                return new ResponseEntity<>(randomUsers, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping(value = "/public/homepage")

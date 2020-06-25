@@ -31,4 +31,8 @@ public interface UserService {
     ResponseEntity<?> getSubscription(String username) throws StripeException;
 
     boolean cancelSubscription(String username) throws StripeException;
+
+    List<User> getNewUsers();
+
+    List<User> getRandomUsers();
 }

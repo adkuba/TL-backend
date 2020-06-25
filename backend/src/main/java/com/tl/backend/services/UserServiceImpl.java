@@ -14,6 +14,12 @@ import com.tl.backend.repositories.UserRepository;
 import com.tl.backend.request.SubscriptionRequest;
 import com.tl.backend.response.SubscriptionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.SampleOperation;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,22 +28,21 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final TimelineService timelineService;
-    private final TimelineRepository timelineRepository;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder encoder;
+    private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public UserServiceImpl(PasswordEncoder passwordEncoder, UserRepository userRepository, TimelineService timelineService, TimelineRepository timelineRepository, AuthenticationManager authenticationManager){
+    public UserServiceImpl(MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder, UserRepository userRepository, AuthenticationManager authenticationManager){
         this.userRepository = userRepository;
-        this.timelineService = timelineService;
-        this.timelineRepository = timelineRepository;
+        this.mongoTemplate = mongoTemplate;
         this.authenticationManager = authenticationManager;
         this.encoder = passwordEncoder;
     }
@@ -234,6 +239,23 @@ public class UserServiceImpl implements UserService {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public List<User> getNewUsers() {
+        //users 1 day old, is it working?
+        MatchOperation matchOperation = Aggregation.match(Criteria.where("creationTime").gte(LocalDate.now().minusDays(1)));
+        Aggregation aggregation = Aggregation.newAggregation(matchOperation);
+        AggregationResults<User> users = mongoTemplate.aggregate(aggregation, "users", User.class);
+        return users.getMappedResults();
+    }
+
+    @Override
+    public List<User> getRandomUsers() {
+        SampleOperation matchStage = Aggregation.sample(5);
+        Aggregation aggregation = Aggregation.newAggregation(matchStage);
+        AggregationResults<User> users = mongoTemplate.aggregate(aggregation, "users", User.class);
+        return users.getMappedResults();
     }
 
 }
