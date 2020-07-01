@@ -56,21 +56,23 @@ public class UserServiceImpl implements UserService {
             User follower = optionalFollowerUser.get();
             for (InteractionEvent interactionEvent : user.getFollowers()) {
                 //already following need to unfollow
-                if (interactionEvent.getUserId().equals(followerUsername)){
-                    //deleting from user
-                    List<InteractionEvent> followers = user.getFollowers();
-                    followers.remove(interactionEvent);
-                    user.setFollowers(followers);
-                    userRepository.save(user);
-                    //deleting from follower
-                    followers = follower.getFollowers();
-                    InteractionEvent event = new InteractionEvent();
-                    event.setFollow(username);
-                    event.setDate(interactionEvent.getDate());
-                    followers.remove(event);
-                    follower.setFollowers(followers);
-                    userRepository.save(follower);
-                    return followers;
+                if (interactionEvent.getUserId() != null){
+                    if (interactionEvent.getUserId().equals(followerUsername)){
+                        //deleting from user
+                        List<InteractionEvent> followers = user.getFollowers();
+                        followers.remove(interactionEvent);
+                        user.setFollowers(followers);
+                        userRepository.save(user);
+                        //deleting from follower
+                        followers = follower.getFollowers();
+                        InteractionEvent event = new InteractionEvent();
+                        event.setFollow(username);
+                        event.setDate(interactionEvent.getDate());
+                        followers.remove(event);
+                        follower.setFollowers(followers);
+                        userRepository.save(follower);
+                        return followers;
+                    }
                 }
             }
             //need to follow
