@@ -14,6 +14,7 @@ import com.tl.backend.response.JwtResponse;
 import com.tl.backend.response.MessageResponse;
 import com.tl.backend.response.UserResponse;
 import com.tl.backend.security.JwtUtils;
+import com.tl.backend.services.CaptchaService;
 import com.tl.backend.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -53,11 +54,13 @@ public class AuthController {
     private final RoleRepository roleRepository;
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
+    private final CaptchaService captchaService;
     private final StatisticsRepository statisticsRepository;
 
     @Autowired
-    public AuthController(StatisticsRepository statisticsRepository, UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
+    public AuthController(CaptchaService captchaService, StatisticsRepository statisticsRepository, UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
         this.appProperties = appProperties;
+        this.captchaService = captchaService;
         this.statisticsRepository = statisticsRepository;
         this.userMapper = userMapper;
         this.authenticationManager = authenticationManager;
@@ -147,6 +150,12 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) throws StripeException {
+        if (signUpRequest.getRecaptchaToken() != null){
+            if (!captchaService.processResponse(signUpRequest.getRecaptchaToken())){
+                return ResponseEntity.badRequest().body(new MessageResponse("Error: Bad captcha verification"));
+            }
+        }
+
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()

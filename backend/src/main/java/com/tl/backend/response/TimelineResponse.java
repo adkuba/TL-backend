@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 
 import java.net.URL;
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -21,6 +22,7 @@ public class TimelineResponse {
     private String event;
     private long views;
     private long trendingViews;
+    private LocalDate creationDate;
     private String category;
     private List<InteractionEvent> likes;
     private List<URL> pictures;

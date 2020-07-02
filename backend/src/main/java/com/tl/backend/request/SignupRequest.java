@@ -20,6 +20,8 @@ public class SignupRequest {
 
     private Set<String> roles;
 
+    private String recaptchaToken;
+
     @NotBlank
     @Size(min = 6, max = 40)
     private String password;

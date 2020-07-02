@@ -11,4 +11,5 @@ public class AppProperties {
     private String apiDomain;
     private String domain;
     private String stripeKey;
+    private String googleRecaptcha;
 }
