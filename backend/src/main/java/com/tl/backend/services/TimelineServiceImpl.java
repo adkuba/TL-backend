@@ -27,10 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.limit;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.sort;
@@ -44,10 +41,12 @@ public class TimelineServiceImpl implements TimelineService {
     private final MongoTemplate mongoTemplate;
     private final UserRepository userRepository;
     private final FileResourceRepository fileResourceRepository;
+    private final UserServiceImpl userService;
 
     @Autowired
-    public TimelineServiceImpl(UserRepository userRepository, FileResourceRepository fileResourceRepository, TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate, EventRepository eventRepository){
+    public TimelineServiceImpl(UserServiceImpl userService, UserRepository userRepository, FileResourceRepository fileResourceRepository, TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate, EventRepository eventRepository){
         this.timelineRepository = timelineRepository;
+        this.userService = userService;
         this.userRepository = userRepository;
         this.fileResourceRepository = fileResourceRepository;
         this.fileService = fileService;
@@ -58,16 +57,12 @@ public class TimelineServiceImpl implements TimelineService {
     @Override
     public Timeline getTimelineById(String id) throws StripeException {
         Optional<Timeline> optionalTimeline = timelineRepository.findById(id);
+        optionalTimeline.ifPresent(timeline -> userService.checkSubscription(timeline.getUser().getUsername()));
+        optionalTimeline = timelineRepository.findById(id);
         if (optionalTimeline.isPresent()){
             Timeline timeline = optionalTimeline.get();
-            //dodac wyjatek na admina!
-            if (Period.between(timeline.getUser().getCreationTime(), LocalDate.now()).getDays() <= 30){
+            if (timeline.getActive()){
                 return timeline;
-            } else {
-                Subscription subscription = Subscription.retrieve(timeline.getUser().getSubscriptionID());
-                if (subscription.getStatus().equals("active")){
-                    return timeline;
-                }
             }
         }
         return null;
@@ -114,6 +109,8 @@ public class TimelineServiceImpl implements TimelineService {
                 eventRepository.delete(event);
             }
             timelineRepository.delete(timeline);
+            Optional<User> optionalUser = userRepository.findById(timeline.getUser().getId());
+            optionalUser.ifPresent(user -> userService.disableTimelines(user.getUsername()));
         }
     }
 
@@ -163,24 +160,16 @@ public class TimelineServiceImpl implements TimelineService {
 
     @Override
     public List<Timeline> getUserTimelines(String username) {
-        //NIEOPTYMALNE
-        List<Timeline> allTimelines = timelineRepository.findAll();
-        List<Timeline> timelines = new ArrayList<>();
-        for (Timeline timeline : allTimelines){
-            if (timeline.getUser() != null){
-                if (timeline.getUser().getUsername().equals(username)) {
-                    timelines.add(timeline);
-                }
-            }
-        }
-        return timelines;
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        return optionalUser.map(user -> timelineRepository.findAllByUserId(user.getId())).orElse(null);
     }
 
     @Override
     public List<Timeline> randomTimelines() {
         SampleOperation matchStage = Aggregation.sample(5);
         MatchOperation matchOperation = Aggregation.match(Criteria.where("user").exists(true));
-        Aggregation aggregation = Aggregation.newAggregation(matchStage, matchOperation);
+        MatchOperation active = Aggregation.match(Criteria.where("active").is(true));
+        Aggregation aggregation = Aggregation.newAggregation(matchStage, matchOperation, active);
         AggregationResults<Timeline> timelines = mongoTemplate.aggregate(aggregation, "timelines", Timeline.class);
         return timelines.getMappedResults();
     }
@@ -190,7 +179,8 @@ public class TimelineServiceImpl implements TimelineService {
         SortOperation sortByDate = sort(Sort.by(Sort.Direction.ASC, "creationDate"));
         LimitOperation limitTo = limit(10);
         MatchOperation matchOperation = Aggregation.match(Criteria.where("user").exists(true));
-        Aggregation aggregation = Aggregation.newAggregation(sortByDate, limitTo, matchOperation);
+        MatchOperation active = Aggregation.match(Criteria.where("active").is(true));
+        Aggregation aggregation = Aggregation.newAggregation(sortByDate, limitTo, matchOperation, active);
         AggregationResults<Timeline> timelines = mongoTemplate.aggregate(aggregation, "timelines", Timeline.class);
         return timelines.getMappedResults();
     }
@@ -200,7 +190,8 @@ public class TimelineServiceImpl implements TimelineService {
         SortOperation sortByViews = sort(Sort.by(Sort.Direction.DESC, "views"));
         LimitOperation limitTo = limit(10);
         MatchOperation matchOperation = Aggregation.match(Criteria.where("user").exists(true));
-        Aggregation aggregation = Aggregation.newAggregation(sortByViews, limitTo, matchOperation);
+        MatchOperation active = Aggregation.match(Criteria.where("active").is(true));
+        Aggregation aggregation = Aggregation.newAggregation(sortByViews, limitTo, matchOperation, active);
         AggregationResults<Timeline> timelines = mongoTemplate.aggregate(aggregation, "timelines", Timeline.class);
         return timelines.getMappedResults();
     }
@@ -210,9 +201,29 @@ public class TimelineServiceImpl implements TimelineService {
         SortOperation sortByViews = sort(Sort.by(Sort.Direction.DESC, "trendingViews"));
         LimitOperation limitTo = limit(10);
         MatchOperation matchOperation = Aggregation.match(Criteria.where("user").exists(true));
-        Aggregation aggregation = Aggregation.newAggregation(sortByViews, limitTo, matchOperation);
+        MatchOperation active = Aggregation.match(Criteria.where("active").is(true));
+        Aggregation aggregation = Aggregation.newAggregation(sortByViews, limitTo, matchOperation, active);
         AggregationResults<Timeline> timelines = mongoTemplate.aggregate(aggregation, "timelines", Timeline.class);
         return timelines.getMappedResults();
+    }
+
+    @Override
+    public List<Timeline> premiumTimelines() {
+        MatchOperation active = Aggregation.match(Criteria.where("active").is(true));
+        MatchOperation premium = Aggregation.match(Criteria.where("premium").is(true));
+        Aggregation aggregation = Aggregation.newAggregation(premium, active);
+        AggregationResults<Timeline> timelines = mongoTemplate.aggregate(aggregation, "timelines", Timeline.class);
+        return timelines.getMappedResults();
+    }
+
+    @Override
+    public void addPremiumView(String timelineId) {
+        Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
+        if (optionalTimeline.isPresent()){
+            Timeline timeline = optionalTimeline.get();
+            timeline.setPremiumViews(timeline.getPremiumViews() + 1);
+            timelineRepository.save(timeline);
+        }
     }
 
     @Override

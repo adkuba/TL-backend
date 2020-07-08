@@ -147,6 +147,7 @@ public class TimelineController {
         List<TimelineResponse> newTimelines = timelineMapper.timelinesResponse(timelineService.newTimelines());
         List<TimelineResponse> popularTimelines = timelineMapper.timelinesResponse(timelineService.popularTimelines());
         List<TimelineResponse> trendingTimelines = timelineMapper.timelinesResponse(timelineService.trendingTimelines());
+        List<TimelineResponse> premiumTimelines = timelineMapper.timelinesResponse(timelineService.premiumTimelines());
 
         for (TimelineResponse timelineResponse : randomTimelines){
             timelineResponse.setCategory("SUGGESTED");
@@ -179,14 +180,28 @@ public class TimelineController {
                 trendingTimelines.remove(randomIndex);
             }
         }
+        for (int i=0; i<2; i++){
+            if (premiumTimelines.size() > 0){
+                int randomIndex = rand.nextInt(premiumTimelines.size());
+                TimelineResponse timelineResponse = premiumTimelines.get(randomIndex);
+                timelineResponse.setCategory("PREMIUM");
+                timelineResponses.add(timelineResponse);
+                premiumTimelines.remove(randomIndex);
+            }
+        }
 
         Collections.shuffle(timelineResponses);
         return timelineResponses;
     }
 
     @GetMapping(value ="/public", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getTimelineById(@RequestParam String id) throws StripeException {
+    public ResponseEntity<?> getTimelineById(@NotNull @RequestParam String id) throws StripeException {
         return ResponseEntity.ok(timelineMapper.timelineResponse(timelineService.getTimelineById(id)));
+    }
+
+    @PostMapping(value = "/public/premium-view")
+    public void premiumView(@RequestParam String id){
+        timelineService.addPremiumView(id);
     }
 
     @GetMapping(value = "/public/event", produces = MediaType.APPLICATION_JSON_VALUE)

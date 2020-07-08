@@ -16,6 +16,7 @@ import com.tl.backend.response.UserResponse;
 import com.tl.backend.security.JwtUtils;
 import com.tl.backend.services.CaptchaService;
 import com.tl.backend.services.UserDetailsImpl;
+import com.tl.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,14 +53,16 @@ public class AuthController {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
+    private final UserService userService;
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
     private final CaptchaService captchaService;
     private final StatisticsRepository statisticsRepository;
 
     @Autowired
-    public AuthController(CaptchaService captchaService, StatisticsRepository statisticsRepository, UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
+    public AuthController(UserService userService, CaptchaService captchaService, StatisticsRepository statisticsRepository, UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
         this.appProperties = appProperties;
+        this.userService = userService;
         this.captchaService = captchaService;
         this.statisticsRepository = statisticsRepository;
         this.userMapper = userMapper;
@@ -93,7 +96,7 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) throws StripeException {
         //logowanie
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
@@ -103,6 +106,8 @@ public class AuthController {
 
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
+        //update subscription info every login
+        userService.checkSubscription(loginRequest.getUsername());
         Optional<User> optionalUser = userRepository.findUserByEmail(userDetails.getEmail());
         UserResponse userResponse = new UserResponse();
         if (optionalUser.isPresent()){
@@ -119,7 +124,7 @@ public class AuthController {
     }
 
     @PostMapping("/refreshToken")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response){
+    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) throws StripeException {
         Cookie refreshTokenCookie = WebUtils.getCookie(request,"refresh_token");
 
         if (refreshTokenCookie != null) {
@@ -130,6 +135,8 @@ public class AuthController {
             Date creationTime = new Date();
             String jwt = jwtUtils.refreshJwtToken(requestedUser.getUsername());
 
+            //update subscription info every login
+            userService.checkSubscription(requestedUser.getUsername());
             Optional<User> optionalUser = userRepository.findUserByEmail(requestedUser.getEmail());
             UserResponse userResponse = new UserResponse();
             if (optionalUser.isPresent()){

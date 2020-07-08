@@ -53,11 +53,6 @@ public class UserController {
         return userService.createSubscription(subscriptionRequest);
     }
 
-    @GetMapping(value = "/get-subscription")
-    public ResponseEntity<?> getSubscription(Authentication authentication) throws StripeException {
-        return userService.getSubscription(authentication.getName());
-    }
-
     @PostMapping(value = "/cancel-subscription")
     public ResponseEntity<?> cancelSubscription(Authentication authentication) throws StripeException {
         return new ResponseEntity<>(userService.cancelSubscription(authentication.getName()), HttpStatus.OK);
@@ -77,6 +72,12 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @GetMapping(value = "/check-subscription")
+    public ResponseEntity<?> checkSubscription(Authentication authentication) throws StripeException {
+        userService.checkSubscription(authentication.getName());
+        return null;
     }
 
     @GetMapping(value = "/public/{username}")

@@ -24,6 +24,8 @@ public class Timeline {
     private String id;
     @DBRef
     private User user;
+    private Boolean premium = false;
+    private Boolean active = true;
     private String description;
     private String descriptionTitle;
     private String eventId;
@@ -31,6 +33,7 @@ public class Timeline {
     private List<InteractionEvent> viewsDetails = new ArrayList<>();
     private long views = 0;
     private long trendingViews = 0;
+    private long premiumViews = 0;
     private LocalDate creationDate = LocalDate.now();
     private List<InteractionEvent> likes = new ArrayList<>();
 

@@ -12,7 +12,6 @@ import com.tl.backend.models.User;
 import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
 import com.tl.backend.request.SubscriptionRequest;
-import com.tl.backend.response.SubscriptionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
@@ -28,7 +27,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.*;
 
 @Service
@@ -37,11 +38,13 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder encoder;
+    private final TimelineRepository timelineRepository;
     private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public UserServiceImpl(MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder, UserRepository userRepository, AuthenticationManager authenticationManager){
+    public UserServiceImpl(TimelineRepository timelineRepository, MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder, UserRepository userRepository, AuthenticationManager authenticationManager){
         this.userRepository = userRepository;
+        this.timelineRepository = timelineRepository;
         this.mongoTemplate = mongoTemplate;
         this.authenticationManager = authenticationManager;
         this.encoder = passwordEncoder;
@@ -118,6 +121,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User checkUser(String username) {
+        checkSubscription(username);
         Optional<User> optionalUser = userRepository.findByUsername(username);
         return optionalUser.orElse(null);
     }
@@ -178,11 +182,16 @@ public class UserServiceImpl implements UserService {
             Customer customer = Customer.retrieve(user.getStripeID());
             try {
                 PaymentMethod pm = PaymentMethod.retrieve(subscriptionRequest.getPaymentMethodId());
+                user.setCard(pm.getCard().getBrand() + " ****" + pm.getCard().getLast4());
                 pm.attach(PaymentMethodAttachParams.builder().setCustomer(customer.getId()).build());
 
             } catch (CardException e){
                 return new ResponseEntity<>(e.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
             }
+
+            Map<String, Object> userParams = new HashMap<>();
+            userParams.put("name", subscriptionRequest.getFullName());
+            customer.update(userParams);
 
             Map<String, Object> customerParams = new HashMap<String, Object>();
             Map<String, String> invoiceSettings = new HashMap<String, String>();
@@ -203,7 +212,11 @@ public class UserServiceImpl implements UserService {
             params.put("expand", expandList);
 
             Subscription subscription = Subscription.create(params);
+            Instant instant = Instant.ofEpochSecond(subscription.getCurrentPeriodEnd());
+            user.setSubscriptionEnd(LocalDate.ofInstant(instant, ZoneOffset.UTC));
             user.setSubscriptionID(subscription.getId());
+
+            activateTimelines(user.getUsername());
             userRepository.save(user);
 
             return new ResponseEntity<>(subscription.toJson(), HttpStatus.OK);
@@ -212,21 +225,42 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseEntity<?> getSubscription(String username) {
+    public void checkSubscription(String username) {
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isPresent()){
             User user = optionalUser.get();
-            try {
-                Subscription subscription = Subscription.retrieve(user.getSubscriptionID());
-                SubscriptionResponse subscriptionResponse = new SubscriptionResponse();
-                subscriptionResponse.setStatus(subscription.getStatus());
-                return new ResponseEntity<>(subscriptionResponse, HttpStatus.OK);
-
-            } catch (StripeException e) {
-                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            //user has subscription
+            if (user.getSubscriptionEnd() != null){
+                //if subscription ended
+                if (user.getSubscriptionEnd().compareTo(LocalDate.now()) < 0){
+                    //check again if subscription active
+                    if (user.getSubscriptionID() != null) {
+                        try {
+                            Subscription subscription = Subscription.retrieve(user.getSubscriptionID());
+                            //subscription active
+                            if (subscription.getStatus().equals("active")) {
+                                Instant instant = Instant.ofEpochSecond(subscription.getCurrentPeriodEnd());
+                                user.setSubscriptionEnd(LocalDate.ofInstant(instant, ZoneOffset.UTC));
+                            } else {
+                                //subscription not active
+                                user.setSubscriptionID(null);
+                                user.setSubscriptionEnd(null);
+                                disableTimelines(username);
+                            }
+                            userRepository.save(user);
+                        } catch (StripeException e) {
+                            System.out.println(e.getMessage());
+                        }
+                    } else {
+                        //subscription not active
+                        user.setSubscriptionID(null);
+                        user.setSubscriptionEnd(null);
+                        disableTimelines(username);
+                        userRepository.save(user);
+                    }
+                }
             }
         }
-        return new ResponseEntity<>("Can't find user", HttpStatus.BAD_REQUEST);
     }
 
     @Override
@@ -236,7 +270,7 @@ public class UserServiceImpl implements UserService {
             User user = optionalUser.get();
             Subscription subscription = Subscription.retrieve(user.getSubscriptionID());
             Subscription deletedSubscription = subscription.cancel();
-            user.setSubscriptionID("");
+            user.setSubscriptionID(null);
             userRepository.save(user);
             return true;
         }
@@ -245,7 +279,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getNewUsers() {
-        //users 1 day old, is it working?
         MatchOperation matchOperation = Aggregation.match(Criteria.where("creationTime").gte(LocalDate.now().minusDays(1)));
         Aggregation aggregation = Aggregation.newAggregation(matchOperation);
         AggregationResults<User> users = mongoTemplate.aggregate(aggregation, "users", User.class);
@@ -260,4 +293,41 @@ public class UserServiceImpl implements UserService {
         return users.getMappedResults();
     }
 
+    @Override
+    public void disableTimelines(String username) {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isPresent()){
+            List<Timeline> timelines = timelineRepository.findAllByUserId(optionalUser.get().getId());
+            timelines.sort(Comparator.comparing(Timeline::getCreationDate));
+            //deactivate last two timelines
+            for (int i = timelines.size()-1; i > 1; i--){
+                Timeline timeline = timelines.get(i);
+                timeline.setActive(false);
+                timeline.setPremium(false);
+                timelineRepository.save(timeline);
+            }
+
+            for (int i=0; i<=1; i++){
+                if (i >= timelines.size()){
+                    break;
+                }
+                Timeline timeline = timelines.get(i);
+                timeline.setActive(true);
+                timeline.setPremium(false);
+                timelineRepository.save(timeline);
+            }
+        }
+    }
+
+    void activateTimelines(String username){
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isPresent()){
+            List<Timeline> timelines = timelineRepository.findAllByUserId(optionalUser.get().getId());
+            for (Timeline timeline : timelines) {
+                timeline.setActive(true);
+                timeline.setPremium(true);
+                timelineRepository.save(timeline);
+            }
+        }
+    }
 }

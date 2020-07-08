@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class SubscriptionRequest {
+    private String fullName;
     private String username;
     private String paymentMethodId;
     private String priceId;

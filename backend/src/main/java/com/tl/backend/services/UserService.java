@@ -1,11 +1,9 @@
 package com.tl.backend.services;
 
 import com.stripe.exception.StripeException;
-import com.stripe.model.Subscription;
 import com.tl.backend.models.InteractionEvent;
 import com.tl.backend.models.User;
 import com.tl.backend.request.SubscriptionRequest;
-import com.tl.backend.response.SubscriptionResponse;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -28,11 +26,13 @@ public interface UserService {
 
     ResponseEntity<?> createSubscription(SubscriptionRequest subscriptionRequest) throws StripeException;
 
-    ResponseEntity<?> getSubscription(String username) throws StripeException;
+    void checkSubscription(String username) throws StripeException;
 
     boolean cancelSubscription(String username) throws StripeException;
 
     List<User> getNewUsers();
 
     List<User> getRandomUsers();
+
+    void disableTimelines(String username);
 }

@@ -20,32 +20,23 @@ public class User {
 
     @Id
     private String id;
-
     private String username;
-
     private String fullName = "";
-
     private List<InteractionEvent> followers = new ArrayList<>();
-
-    private String subscriptionID = "";
-
+    private String subscriptionID;
     private LocalDate creationTime = LocalDate.now();
-
     @JsonIgnore
     private String refreshToken;
-
     private String email;
-
     private List<String> likes = new ArrayList<>();
-
     @NotNull
     @JsonIgnore
     private String password;
-
     @DBRef
     private Set<Role> roles = new HashSet<>();
-
     private String stripeID;
+    private LocalDate subscriptionEnd;
+    private String card;
 
     public User(String username, String email, String password) {
         this.username = username;

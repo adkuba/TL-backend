@@ -22,7 +22,9 @@ public class TimelineResponse {
     private String event;
     private long views;
     private long trendingViews;
+    private long premiumViews;
     private LocalDate creationDate;
+    private boolean active;
     private String category;
     private List<InteractionEvent> likes;
     private List<URL> pictures;

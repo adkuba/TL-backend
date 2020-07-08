@@ -18,4 +18,7 @@ public class UserResponse {
     private List<InteractionEvent> followers;
     private List<String> roles;
     private List<String> likes;
+    private String subscriptionEnd;
+    private String subscriptionID;
+    private String card;
 }

@@ -32,6 +32,10 @@ public interface TimelineService {
 
     List<Timeline> trendingTimelines();
 
+    List<Timeline> premiumTimelines();
+
+    void addPremiumView(String timelineId);
+
     List<Timeline> getAllUserTimelines();
 
     List<String> likeTimeline(String timelineId, String username);
