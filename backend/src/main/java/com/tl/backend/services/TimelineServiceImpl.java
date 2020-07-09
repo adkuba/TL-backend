@@ -55,13 +55,28 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     @Override
-    public Timeline getTimelineById(String id) throws StripeException {
+    public Timeline getTimelineById(String id, String username) throws StripeException {
         Optional<Timeline> optionalTimeline = timelineRepository.findById(id);
         optionalTimeline.ifPresent(timeline -> userService.checkSubscription(timeline.getUser().getUsername()));
         optionalTimeline = timelineRepository.findById(id);
         if (optionalTimeline.isPresent()){
             Timeline timeline = optionalTimeline.get();
             if (timeline.getActive()){
+                if (username != null){
+                    Optional<User> optionalUser = userRepository.findByUsername(username);
+                    if (optionalUser.isPresent()){
+                        User user = optionalUser.get();
+                        List<InteractionEvent> myViews = user.getMyViews();
+                        InteractionEvent view = new InteractionEvent();
+                        view.setDate(LocalDate.now());
+                        view.setTimelineId(id);
+                        if (myViews.stream().noneMatch(o -> o.getTimelineId().equals(id))){
+                            myViews.add(view);
+                            user.setMyViews(myViews);
+                            userRepository.save(user);
+                        }
+                    }
+                }
                 return timeline;
             }
         }
@@ -224,6 +239,42 @@ public class TimelineServiceImpl implements TimelineService {
             timeline.setPremiumViews(timeline.getPremiumViews() + 1);
             timelineRepository.save(timeline);
         }
+    }
+
+    @Override
+    public void reportTimeline(String timelineId) {
+        Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
+        if (optionalTimeline.isPresent()){
+            Timeline timeline = optionalTimeline.get();
+            timeline.setReported(true);
+            timelineRepository.save(timeline);
+        }
+    }
+
+    @Override
+    public void unReportTimeline(String timelineId) {
+        Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
+        if (optionalTimeline.isPresent()){
+            Timeline timeline = optionalTimeline.get();
+            timeline.setReported(false);
+            timelineRepository.save(timeline);
+        }
+    }
+
+    @Override
+    public void deleteUserTimelines(String username) {
+        List<Timeline> timelines = getUserTimelines(username);
+        for (Timeline timeline : timelines){
+            deleteMineTimelineById(timeline.getId(), true);
+        }
+    }
+
+    @Override
+    public List<Timeline> getReported() {
+        MatchOperation reported = Aggregation.match(Criteria.where("reported").is(true));
+        Aggregation aggregation = Aggregation.newAggregation(reported);
+        AggregationResults<Timeline> timelines = mongoTemplate.aggregate(aggregation, "timelines", Timeline.class);
+        return timelines.getMappedResults();
     }
 
     @Override

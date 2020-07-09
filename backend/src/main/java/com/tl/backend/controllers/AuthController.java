@@ -113,6 +113,9 @@ public class AuthController {
         if (optionalUser.isPresent()){
             userResponse = userMapper.userResponse(optionalUser.get());
         }
+        if (userResponse.getBlocked()){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is blocked!");
+        }
 
         //refresh token
         String refreshToken = refreshUserToken(userDetails.getEmail());
@@ -141,6 +144,9 @@ public class AuthController {
             UserResponse userResponse = new UserResponse();
             if (optionalUser.isPresent()){
                 userResponse = userMapper.userResponse(optionalUser.get());
+            }
+            if (userResponse.getBlocked()){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User is blocked!");
             }
 
             //refresh token

@@ -108,6 +108,17 @@ public class TimelineController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @DeleteMapping
+    public ResponseEntity<?> deleteUserTimelines(@RequestParam String username){
+        timelineService.deleteUserTimelines(username);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping(value = "/get-reported")
+    public ResponseEntity<?> getReported(){
+        return new ResponseEntity<>(timelineMapper.timelinesResponse(timelineService.getReported()), HttpStatus.OK);
+    }
+
     @GetMapping(value = "/public/{username}")
     public List<TimelineResponse> userTimelines(@PathVariable String username){
         return timelineMapper.timelinesResponse(timelineService.getUserTimelines(username));
@@ -195,8 +206,18 @@ public class TimelineController {
     }
 
     @GetMapping(value ="/public", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getTimelineById(@NotNull @RequestParam String id) throws StripeException {
-        return ResponseEntity.ok(timelineMapper.timelineResponse(timelineService.getTimelineById(id)));
+    public ResponseEntity<?> getTimelineById(@RequestParam(required = false) String username, @NotNull @RequestParam String id) throws StripeException {
+        return ResponseEntity.ok(timelineMapper.timelineResponse(timelineService.getTimelineById(id, username)));
+    }
+
+    @PostMapping(value = "/public/report")
+    public void reportTimeline(@RequestParam String id){
+        timelineService.reportTimeline(id);
+    }
+
+    @PostMapping(value = "/un-report")
+    public void unReportTimeline(@RequestParam String id){
+        timelineService.unReportTimeline(id);
     }
 
     @PostMapping(value = "/public/premium-view")

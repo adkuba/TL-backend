@@ -33,6 +33,7 @@ public class Timeline {
     private List<InteractionEvent> viewsDetails = new ArrayList<>();
     private long views = 0;
     private long trendingViews = 0;
+    private Boolean reported = false;
     private long premiumViews = 0;
     private LocalDate creationDate = LocalDate.now();
     private List<InteractionEvent> likes = new ArrayList<>();

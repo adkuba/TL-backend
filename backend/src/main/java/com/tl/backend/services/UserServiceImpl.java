@@ -294,6 +294,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void blockUser(String username) {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isPresent()){
+            User user = optionalUser.get();
+            user.setBlocked(true);
+            userRepository.save(user);
+        }
+    }
+
+    @Override
     public void disableTimelines(String username) {
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isPresent()){

@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface TimelineService {
 
-    Timeline getTimelineById(String id) throws StripeException;
+    Timeline getTimelineById(String id, String username) throws StripeException;
 
     Timeline getTimelineByEventId(String eventId);
 
@@ -35,6 +35,14 @@ public interface TimelineService {
     List<Timeline> premiumTimelines();
 
     void addPremiumView(String timelineId);
+
+    void reportTimeline(String timelineId);
+
+    void unReportTimeline(String timelineId);
+
+    void deleteUserTimelines(String username);
+
+    List<Timeline> getReported();
 
     List<Timeline> getAllUserTimelines();
 

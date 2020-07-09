@@ -12,4 +12,5 @@ public class InteractionEvent {
     private LocalDate date = LocalDate.now();
     private String follow;
     private String like;
+    private String timelineId;
 }

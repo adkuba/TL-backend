@@ -34,5 +34,7 @@ public interface UserService {
 
     List<User> getRandomUsers();
 
+    void blockUser(String username);
+
     void disableTimelines(String username);
 }

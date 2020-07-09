@@ -21,4 +21,5 @@ public class UserResponse {
     private String subscriptionEnd;
     private String subscriptionID;
     private String card;
+    private Boolean blocked;
 }

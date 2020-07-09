@@ -80,6 +80,12 @@ public class UserController {
         return null;
     }
 
+    @PostMapping(value = "/block")
+    public ResponseEntity<?> blockUser(@RequestParam String username){
+        userService.blockUser(username);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @GetMapping(value = "/public/{username}")
     public ResponseEntity<?> checkUser(@PathVariable String username){
         User user = userService.checkUser(username);

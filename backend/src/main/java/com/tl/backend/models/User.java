@@ -24,6 +24,7 @@ public class User {
     private String fullName = "";
     private List<InteractionEvent> followers = new ArrayList<>();
     private String subscriptionID;
+    private Boolean blocked = false;
     private LocalDate creationTime = LocalDate.now();
     @JsonIgnore
     private String refreshToken;
@@ -37,6 +38,7 @@ public class User {
     private String stripeID;
     private LocalDate subscriptionEnd;
     private String card;
+    private List<InteractionEvent> myViews = new ArrayList<>();
 
     public User(String username, String email, String password) {
         this.username = username;
