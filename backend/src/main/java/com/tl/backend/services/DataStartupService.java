@@ -54,6 +54,17 @@ public class DataStartupService {
                     .onField("descriptionTitle")
                     .build();
 
+            TextIndexDefinition eventTextIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
+                    .onField("description")
+                    .onField("title")
+                    .build();
+
+            TextIndexDefinition userTextIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
+                    .onField("username")
+                    .build();
+
+            mongoTemplate.indexOps(User.class).ensureIndex(userTextIndex);
+            mongoTemplate.indexOps(Event.class).ensureIndex(eventTextIndex);
             mongoTemplate.indexOps(Timeline.class).ensureIndex(textIndex);
 
 
@@ -101,10 +112,6 @@ public class DataStartupService {
             trackingEvent.setTitle("Object Tracking");
             trackingEvent.setDescription(lorem);
             trackingEvent.setDate(LocalDate.of(2019, Month.OCTOBER, 20));
-            HashMap<String, String> trackingEventLinks = new HashMap<String, String>();
-            trackingEventLinks.put("Repozytorium", "link do repoo");
-            trackingEventLinks.put("Artykul", "link go medium");
-            trackingEvent.setLinks(trackingEventLinks);
             trackingEvent.setTimelineId(timeline.getId());
             eventRepository.save(trackingEvent);
 
@@ -118,8 +125,6 @@ public class DataStartupService {
             subTrackingEvent.setTitle("Aplikacja");
             subTrackingEvent.setDescription(lorem.substring(0, lorem.length()/2));
             subTrackingEvent.setDate(LocalDate.of(2019, Month.FEBRUARY, 10));
-            HashMap<String, String> subTrackingEventLinks = new HashMap<String, String>();
-            subTrackingEvent.setLinks(subTrackingEventLinks);
             subTrackingEvent.setTimelineId(subTimelineTrackingEvent.getId());
             eventRepository.save(subTrackingEvent);
 
@@ -128,9 +133,6 @@ public class DataStartupService {
             subTrackingEvent2.setTitle("AI");
             subTrackingEvent2.setDescription(lorem.substring(0, lorem.length()/2));
             subTrackingEvent2.setDate(LocalDate.of(2019, Month.JULY, 10));
-            HashMap<String, String> subTrackingEventLinks2 = new HashMap<String, String>();
-            subTrackingEventLinks2.put("Demo", "link do demo");
-            subTrackingEvent2.setLinks(subTrackingEventLinks2);
             subTrackingEvent2.setTimelineId(subTimelineTrackingEvent.getId());
             eventRepository.save(subTrackingEvent2);
 
@@ -138,10 +140,6 @@ public class DataStartupService {
             gameEvent.setTitle("Gravity");
             gameEvent.setDescription(lorem);
             gameEvent.setDate(LocalDate.of(2020, Month.FEBRUARY, 20));
-            HashMap<String, String> gameEventLinks = new HashMap<String, String>();
-            gameEventLinks.put("Repozytorium", "link do repoo");
-            gameEventLinks.put("Google Play", "link go playa");
-            gameEvent.setLinks(gameEventLinks);
             gameEvent.setTimelineId(timeline.getId());
             eventRepository.save(gameEvent);
         }

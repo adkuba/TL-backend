@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -73,7 +74,10 @@ public class EventServiceImpl implements EventService {
             Event picEvent = opPicEvent.get();
             List<FileResource> fileResources = new ArrayList<>();
             for (MultipartFile picture : pictures){
-                fileResources.add(fileService.saveFileResource(picture));
+                String type = Objects.requireNonNull(picture.getContentType()).split("/")[0];
+                if (type.equals("image")) {
+                    fileResources.add(fileService.saveFileResource(picture));
+                }
             }
             picEvent.setPictures(fileResources);
             return eventRepository.save(picEvent);

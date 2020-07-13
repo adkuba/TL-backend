@@ -144,7 +144,10 @@ public class TimelineServiceImpl implements TimelineService {
             Timeline timeline = optionalTimeline.get();
             List<FileResource> fileResources = new ArrayList<>();
             for (MultipartFile file : multipartFiles){
-                fileResources.add(fileService.saveFileResource(file));
+                String type = Objects.requireNonNull(file.getContentType()).split("/")[0];
+                if (type.equals("image")){
+                    fileResources.add(fileService.saveFileResource(file));
+                }
             }
             timeline.setPictures(fileResources);
             return timelineRepository.save(timeline);
@@ -297,12 +300,44 @@ public class TimelineServiceImpl implements TimelineService {
 
     @Override
     public List<Timeline> searchTimelines(String text) {
-        TextCriteria criteria = TextCriteria.forDefaultLanguage()
-                .matchingAny(text);
-        Query query = TextQuery.queryText(criteria)
-                .sortByScore()
-                .with(PageRequest.of(0, 5));
-        return mongoTemplate.find(query, Timeline.class);
+        TextCriteria criteria = TextCriteria.forDefaultLanguage().matchingAny(text);
+        Query query = TextQuery.queryText(criteria).sortByScore().with(PageRequest.of(0, 5));
+
+        //searched text is in main timeline
+        List<Timeline> timelines = mongoTemplate.find(query, Timeline.class);
+        List<Event> events = mongoTemplate.find(query, Event.class);
+        //in events
+        for (Event event : events){
+            //master timeline not in list
+            if (timelines.stream().noneMatch(o -> o.getId().equals(event.getTimelineId()))){
+                Optional<Timeline> optionalTimeline = timelineRepository.findById(event.getTimelineId());
+                if (optionalTimeline.isPresent()){
+                    Timeline timeline = optionalTimeline.get();
+                    if (timeline.getUser() != null){
+                        timelines.add(timeline);
+
+                    } else {
+                        //master timeline is sub-timeline
+                        Optional<Event> optionalEvent = eventRepository.findById(timeline.getEventId());
+                        if (optionalEvent.isPresent()){
+                            Event masterEvent = optionalEvent.get();
+                            //check again if master timeline is in list
+                            if (timelines.stream().noneMatch(o -> o.getId().equals(masterEvent.getTimelineId()))){
+                                Optional<Timeline> masterOptionalTimeline = timelineRepository.findById(masterEvent.getTimelineId());
+                                masterOptionalTimeline.ifPresent(timelines::add);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        //searched text is in username
+        List<User> users = mongoTemplate.find(query, User.class);
+        for (User user : users){
+            timelines.addAll(getUserTimelines(user.getUsername()));
+        }
+
+        return timelines;
     }
 
     private List<String> likeOperation(Integer add, String timelineId, String username){

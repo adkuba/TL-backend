@@ -13,11 +13,9 @@ import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
 import com.tl.backend.request.SubscriptionRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.Aggregation;
-import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.aggregation.MatchOperation;
-import org.springframework.data.mongodb.core.aggregation.SampleOperation;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +29,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.*;
+
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.limit;
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.sort;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -279,8 +280,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getNewUsers() {
-        MatchOperation matchOperation = Aggregation.match(Criteria.where("creationTime").gte(LocalDate.now().minusDays(1)));
-        Aggregation aggregation = Aggregation.newAggregation(matchOperation);
+        SortOperation sortByDate = sort(Sort.by(Sort.Direction.ASC, "creationTime"));
+        Aggregation aggregation = Aggregation.newAggregation(sortByDate);
         AggregationResults<User> users = mongoTemplate.aggregate(aggregation, "users", User.class);
         return users.getMappedResults();
     }

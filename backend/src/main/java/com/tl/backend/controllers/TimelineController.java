@@ -16,7 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -103,12 +105,27 @@ public class TimelineController {
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<?> deleteMainTimeline(@PathVariable String id){
-        timelineService.deleteMineTimelineById(id, true);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<?> deleteMainTimeline(Authentication authentication, @PathVariable String id){
+        boolean isAdmin = false;
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        for (GrantedAuthority grantedAuthority : authorities){
+            if (grantedAuthority.getAuthority().equals("ROLE_ADMIN")){
+                isAdmin = true;
+                break;
+            }
+        }
+        Optional<Timeline> optionalTimeline = timelineRepository.findById(id);
+        if (optionalTimeline.isPresent()){
+            if (isAdmin || optionalTimeline.get().getUser().getUsername().equals(authentication.getName())){
+                timelineService.deleteMineTimelineById(id, true);
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteUserTimelines(@RequestParam String username){
         timelineService.deleteUserTimelines(username);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
