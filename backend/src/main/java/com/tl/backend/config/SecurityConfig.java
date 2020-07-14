@@ -79,7 +79,7 @@ class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/events/public/**").permitAll()
                 .antMatchers("/api/statistics/public/**").permitAll()
                 .antMatchers("/api/users/public/**").permitAll()
-                .antMatchers("/files/**").permitAll() //UWAGA! tylko do tesow??
+                .antMatchers("/files/**").permitAll()
                 .anyRequest().authenticated();
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);

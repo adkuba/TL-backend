@@ -28,6 +28,7 @@ public class User {
     private LocalDate creationTime = LocalDate.now();
     @JsonIgnore
     private String refreshToken;
+    private PasswordResetToken passwordResetToken;
     private String email;
     private List<String> likes = new ArrayList<>();
     @NotNull

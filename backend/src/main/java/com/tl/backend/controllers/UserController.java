@@ -3,6 +3,7 @@ package com.tl.backend.controllers;
 import com.stripe.exception.StripeException;
 import com.tl.backend.mappers.UserMapper;
 import com.tl.backend.models.User;
+import com.tl.backend.request.PasswordResetRequest;
 import com.tl.backend.request.SubscriptionRequest;
 import com.tl.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,8 +68,8 @@ public class UserController {
     }
 
     @PutMapping(value = "/password")
-    public ResponseEntity<?> changePassword(Authentication authentication, @RequestParam String oldPassword, @RequestParam String newPassword){
-        if (userService.changePassword(authentication.getName(), oldPassword, newPassword)){
+    public ResponseEntity<?> changePassword(Authentication authentication, @RequestBody @Valid PasswordResetRequest passwordResetRequest){
+        if (userService.changePassword(authentication.getName(), passwordResetRequest.getOldPassword(), passwordResetRequest.getNewPassword())){
             return new ResponseEntity<>(HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

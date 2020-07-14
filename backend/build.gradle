@@ -32,6 +32,8 @@ dependencies {
 	// https://mvnrepository.com/artifact/com.stripe/stripe-java
 	compile group: 'com.stripe', name: 'stripe-java', version: '19.23.0'
 
+	compile 'org.springframework.boot:spring-boot-starter-mail:2.3.1.RELEASE'
+
 	// spring content && spring content rest
 	compile group: 'com.github.paulcwarren', name: 'spring-content-fs-boot-starter', version: '1.0.0.M10'
 	compile group: 'com.github.paulcwarren', name: 'spring-content-rest-boot-starter', version: '1.0.0.M10'

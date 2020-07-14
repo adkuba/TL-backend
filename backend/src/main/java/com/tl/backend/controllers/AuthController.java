@@ -9,6 +9,7 @@ import com.tl.backend.repositories.RoleRepository;
 import com.tl.backend.repositories.StatisticsRepository;
 import com.tl.backend.repositories.UserRepository;
 import com.tl.backend.request.LoginRequest;
+import com.tl.backend.request.PasswordResetRequest;
 import com.tl.backend.request.SignupRequest;
 import com.tl.backend.response.JwtResponse;
 import com.tl.backend.response.MessageResponse;
@@ -20,23 +21,27 @@ import com.tl.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.WebUtils;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -58,10 +63,12 @@ public class AuthController {
     private final JwtUtils jwtUtils;
     private final CaptchaService captchaService;
     private final StatisticsRepository statisticsRepository;
+    private final JavaMailSender emailSender;
 
     @Autowired
-    public AuthController(UserService userService, CaptchaService captchaService, StatisticsRepository statisticsRepository, UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
+    public AuthController(JavaMailSender emailSender, UserService userService, CaptchaService captchaService, StatisticsRepository statisticsRepository, UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
         this.appProperties = appProperties;
+        this.emailSender = emailSender;
         this.userService = userService;
         this.captchaService = captchaService;
         this.statisticsRepository = statisticsRepository;
@@ -224,6 +231,20 @@ public class AuthController {
             statisticsRepository.save(statistics);
         }
 
+        //email
+        try {
+            MimeMessage message = emailSender.createMimeMessage();
+            message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(signUpRequest.getEmail()));
+            message.setSubject("Welcome");
+            message.setContent("<h1>Welcome on Tline</h1><br>Thank you for creating account!", "text/html");
+            emailSender.send(message);
+
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            //e.printStackTrace();
+            ResponseEntity.badRequest().body(new MessageResponse("Can't send email, you can still login."));
+        }
+
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
 
@@ -241,5 +262,53 @@ public class AuthController {
             }
         }
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/resetPassword")
+    public ResponseEntity<?> resetPassword(@RequestParam String email){
+        Optional<User> optionalUser = userRepository.findUserByEmail(email);
+        if (optionalUser.isPresent()){
+            User user = optionalUser.get();
+            String token = UUID.randomUUID().toString();
+            PasswordResetToken passwordResetToken = new PasswordResetToken();
+            passwordResetToken.setToken(token);
+            user.setPasswordResetToken(passwordResetToken);
+            userRepository.save(user);
+
+            try {
+                MimeMessage message = emailSender.createMimeMessage();
+                message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(email));
+                message.setSubject("Reset password");
+                message.setContent("<h1>Reset your password</h1> Click this link <a href='http://localhost:8080/passwordReset/" + token + "'>reset</a>", "text/html");
+                emailSender.send(message);
+                return ResponseEntity.ok(new MessageResponse("Email send!"));
+
+            } catch (MessagingException | UnsupportedEncodingException e) {
+                //e.printStackTrace();
+                return ResponseEntity.badRequest().body(new MessageResponse("Can't send email"));
+            }
+        }
+        return ResponseEntity.badRequest().body(new MessageResponse("Can't find user"));
+    }
+
+    @PostMapping("/resetPasswordChange")
+    public ResponseEntity<?> changePassword(@RequestBody @Valid PasswordResetRequest passwordResetRequest){
+        Optional<User> optionalUser = userRepository.findByPasswordResetToken(passwordResetRequest.getToken());
+        if (optionalUser.isPresent()){
+            User user = optionalUser.get();
+            if (user.getPasswordResetToken().getExpiryDate().compareTo(LocalDate.now()) >= 0){
+                user.setPassword(encoder.encode(passwordResetRequest.getNewPassword()));
+                user.setPasswordResetToken(null);
+                userRepository.save(user);
+                return ResponseEntity.ok(new MessageResponse("Password changed!"));
+
+            } else {
+                return ResponseEntity.badRequest().body(new MessageResponse("Token expired! Send email again."));
+            }
+
+        } else {
+            return ResponseEntity.badRequest().body(new MessageResponse("Bad token! Send email again."));
+        }
     }
 }
