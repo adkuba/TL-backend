@@ -13,4 +13,5 @@ public class InteractionEvent {
     private String follow;
     private String like;
     private String timelineId;
+    private String deviceId;
 }

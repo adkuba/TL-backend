@@ -1,5 +1,6 @@
 package com.tl.backend.controllers;
 
+import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.tl.backend.config.AppProperties;
@@ -16,6 +17,7 @@ import com.tl.backend.response.MessageResponse;
 import com.tl.backend.response.UserResponse;
 import com.tl.backend.security.JwtUtils;
 import com.tl.backend.services.CaptchaService;
+import com.tl.backend.services.DeviceInfoServiceImpl;
 import com.tl.backend.services.UserDetailsImpl;
 import com.tl.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -64,10 +67,12 @@ public class AuthController {
     private final CaptchaService captchaService;
     private final StatisticsRepository statisticsRepository;
     private final JavaMailSender emailSender;
+    private final DeviceInfoServiceImpl deviceInfoService;
 
     @Autowired
-    public AuthController(JavaMailSender emailSender, UserService userService, CaptchaService captchaService, StatisticsRepository statisticsRepository, UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
+    public AuthController(DeviceInfoServiceImpl deviceInfoService, JavaMailSender emailSender, UserService userService, CaptchaService captchaService, StatisticsRepository statisticsRepository, UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
         this.appProperties = appProperties;
+        this.deviceInfoService = deviceInfoService;
         this.emailSender = emailSender;
         this.userService = userService;
         this.captchaService = captchaService;
@@ -103,7 +108,7 @@ public class AuthController {
     }
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) throws StripeException {
+    public ResponseEntity<?> authenticateUser(HttpServletRequest request, @Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) throws StripeException, IOException, GeoIp2Exception {
         //logowanie
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
@@ -127,6 +132,8 @@ public class AuthController {
         //refresh token
         String refreshToken = refreshUserToken(userDetails.getEmail());
         response.addCookie(createCookie("refresh_token", refreshToken, true));
+
+        deviceInfoService.createInfo(request, userResponse.getUsername());
 
         return ResponseEntity.ok(new JwtResponse(jwt,
                 creationTime,

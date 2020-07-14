@@ -21,4 +21,5 @@ public class Statistics {
     private long numberOfUsers = 0;
     private LocalDate day;
     private List<Review> reviews = new ArrayList<>();
+    private List<String> devices = new ArrayList<>();
 }

@@ -1,13 +1,11 @@
 package com.tl.backend.services;
 
+import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.tl.backend.fileHandling.FileResource;
 import com.tl.backend.fileHandling.FileResourceRepository;
 import com.tl.backend.fileHandling.FileService;
 import com.tl.backend.fileHandling.FileServiceImpl;
-import com.tl.backend.models.Event;
-import com.tl.backend.models.InteractionEvent;
-import com.tl.backend.models.Statistics;
-import com.tl.backend.models.Timeline;
+import com.tl.backend.models.*;
 import com.tl.backend.repositories.EventRepository;
 import com.tl.backend.repositories.StatisticsRepository;
 import com.tl.backend.repositories.TimelineRepository;
@@ -15,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,10 +29,12 @@ public class EventServiceImpl implements EventService {
     private final FileResourceRepository fileResourceRepository;
     private final TimelineRepository timelineRepository;
     private final StatisticsRepository statisticsRepository;
+    private final DeviceInfoServiceImpl deviceInfoService;
 
     @Autowired
-    public EventServiceImpl(StatisticsRepository statisticsRepository, TimelineRepository timelineRepository, FileResourceRepository fileResourceRepository, EventRepository eventRepository, FileServiceImpl fileService){
+    public EventServiceImpl(DeviceInfoServiceImpl deviceInfoService, StatisticsRepository statisticsRepository, TimelineRepository timelineRepository, FileResourceRepository fileResourceRepository, EventRepository eventRepository, FileServiceImpl fileService){
         this.eventRepository = eventRepository;
+        this.deviceInfoService = deviceInfoService;
         this.statisticsRepository = statisticsRepository;
         this.fileResourceRepository = fileResourceRepository;
         this.fileService = fileService;
@@ -41,7 +43,7 @@ public class EventServiceImpl implements EventService {
 
 
     @Override
-    public List<Event> getEventsByTimelineId(String timelineId, Boolean view) {
+    public List<Event> getEventsByTimelineId(String timelineId, Boolean view, HttpServletRequest request) {
         List<Event> events = eventRepository.findAllByTimelineId(timelineId);
         //stats
         if (view){
@@ -49,6 +51,8 @@ public class EventServiceImpl implements EventService {
             if (optionalTimeline.isPresent()){
                 Timeline timeline = optionalTimeline.get();
                 InteractionEvent viewEvent = new InteractionEvent();
+                DeviceInfo deviceInfo = deviceInfoService.createInfo(request, null);
+                viewEvent.setDeviceId(deviceInfo.getId());
                 List<InteractionEvent> views = timeline.getViewsDetails();
                 views.add(viewEvent);
                 timeline.setViewsDetails(views);
@@ -60,6 +64,9 @@ public class EventServiceImpl implements EventService {
                 if (optionalStatistics.isPresent()){
                     Statistics statistics = optionalStatistics.get();
                     statistics.setTotalTimelinesViews(statistics.getTotalTimelinesViews() + 1);
+                    List<String> devices = statistics.getDevices();
+                    devices.add(deviceInfo.getId());
+                    statistics.setDevices(devices);
                     statisticsRepository.save(statistics);
                 }
             }

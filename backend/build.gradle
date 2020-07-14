@@ -33,6 +33,8 @@ dependencies {
 	compile group: 'com.stripe', name: 'stripe-java', version: '19.23.0'
 
 	compile 'org.springframework.boot:spring-boot-starter-mail:2.3.1.RELEASE'
+	compile 'com.maxmind.geoip2:geoip2:2.14.0'
+	implementation 'com.github.ua-parser:uap-java:1.4.3'
 
 	// spring content && spring content rest
 	compile group: 'com.github.paulcwarren', name: 'spring-content-fs-boot-starter', version: '1.0.0.M10'

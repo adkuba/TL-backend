@@ -1,5 +1,6 @@
 package com.tl.backend.controllers;
 
+import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.tl.backend.models.Event;
 import com.tl.backend.mappers.EventsMapper;
 import com.tl.backend.models.Timeline;
@@ -14,8 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,25 +71,25 @@ public class EventController {
     }
 
     @GetMapping(value = "/public", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getEventsByTimelineId(@RequestParam String timelineId, @RequestParam(required = false) Boolean view){
+    public ResponseEntity<?> getEventsByTimelineId(HttpServletRequest request, @RequestParam String timelineId, @RequestParam(required = false) Boolean view) {
         List<Event> events;
         if (view != null){
-            events = eventService.getEventsByTimelineId(timelineId, view);
+            events = eventService.getEventsByTimelineId(timelineId, view, request);
         } else {
-            events = eventService.getEventsByTimelineId(timelineId, false);
+            events = eventService.getEventsByTimelineId(timelineId, false, null);
         }
         return ResponseEntity.ok(eventsMapper.eventResponse(events));
     }
 
     @GetMapping(value = "/allSubEventsByMainTimelineId", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> getAllSubEventsByMainTimelineId(@RequestParam String timelineId){
-        List<Event> events = eventService.getEventsByTimelineId(timelineId, false);
+    public ResponseEntity<?> getAllSubEventsByMainTimelineId(@RequestParam String timelineId)  {
+        List<Event> events = eventService.getEventsByTimelineId(timelineId, false, null);
         List<List<EventResponse>> subEvents = new ArrayList<>();
         for (Event event : events){
             Timeline subTimeline = timelineService.getTimelineByEventId(event.getId());
             List<EventResponse> pom = new ArrayList<>();
             if (subTimeline != null){
-                pom = eventsMapper.eventResponse(eventService.getEventsByTimelineId(subTimeline.getId(), false));
+                pom = eventsMapper.eventResponse(eventService.getEventsByTimelineId(subTimeline.getId(), false, null));
             }
             subEvents.add(pom);
         }

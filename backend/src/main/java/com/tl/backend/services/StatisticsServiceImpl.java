@@ -1,9 +1,7 @@
 package com.tl.backend.services;
 
-import com.tl.backend.models.InteractionEvent;
-import com.tl.backend.models.Review;
-import com.tl.backend.models.Statistics;
-import com.tl.backend.models.Timeline;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
+import com.tl.backend.models.*;
 import com.tl.backend.repositories.StatisticsRepository;
 import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
@@ -11,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -19,17 +19,23 @@ import java.util.Optional;
 public class StatisticsServiceImpl implements StatisticsService {
 
     private final StatisticsRepository statisticsRepository;
+    private final DeviceInfoServiceImpl deviceInfoService;
 
     @Autowired
-    public StatisticsServiceImpl(StatisticsRepository statisticsRepository){
+    public StatisticsServiceImpl(DeviceInfoServiceImpl deviceInfoService, StatisticsRepository statisticsRepository){
         this.statisticsRepository = statisticsRepository;
+        this.deviceInfoService = deviceInfoService;
     }
 
     @Override
-    public void incrementHomepageViews() {
+    public void incrementHomepageViews(HttpServletRequest request) {
         Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(LocalDate.now());
         if (optionalStatistics.isPresent()){
             Statistics statistics = optionalStatistics.get();
+            DeviceInfo deviceInfo = deviceInfoService.createInfo(request, null);
+            List<String> devices = statistics.getDevices();
+            devices.add(deviceInfo.getId());
+            statistics.setDevices(devices);
             statistics.setMainPageViews(statistics.getMainPageViews() + 1);
             statisticsRepository.save(statistics);
         }
