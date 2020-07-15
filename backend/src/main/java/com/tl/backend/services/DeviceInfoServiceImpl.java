@@ -3,6 +3,7 @@ package com.tl.backend.services;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
+import com.tl.backend.config.AppProperties;
 import com.tl.backend.models.DeviceInfo;
 import com.tl.backend.models.User;
 import com.tl.backend.repositories.DeviceInfoRepository;
@@ -38,10 +39,12 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
     private final DeviceInfoRepository deviceInfoRepository;
     private final JavaMailSender emailSender;
     private final UserRepository userRepository;
+    private final AppProperties appProperties;
 
     @Autowired
-    public DeviceInfoServiceImpl(UserRepository userRepository, JavaMailSender emailSender, Parser parser, DatabaseReader databaseReader, DeviceInfoRepository deviceInfoRepository){
+    public DeviceInfoServiceImpl(AppProperties appProperties, UserRepository userRepository, JavaMailSender emailSender, Parser parser, DatabaseReader databaseReader, DeviceInfoRepository deviceInfoRepository){
         this.parser = parser;
+        this.appProperties = appProperties;
         this.userRepository = userRepository;
         this.emailSender = emailSender;
         this.deviceInfoRepository = deviceInfoRepository;
@@ -74,7 +77,7 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
                         message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
                         message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
                         message.setSubject("New login");
-                        message.setContent("<h1>Detected new login!</h1> Device: " + deviceDetails + "\n Location: " + location + "\n Locale: " + request.getLocale().toString(), "text/html");
+                        message.setContent(appProperties.getMailBeginning() + "Detected new login! " + appProperties.getMailMid() + "Device: " + deviceDetails + "\n Location: " + location + "\n Locale: " + request.getLocale().toString() + "\n\n You don't recognize this login? Reset password! " + appProperties.getMailEnd(), "text/html");
                         emailSender.send(message);
                     }
                 } catch (MessagingException | UnsupportedEncodingException e) {

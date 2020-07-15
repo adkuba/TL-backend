@@ -34,8 +34,10 @@ public class StatisticsServiceImpl implements StatisticsService {
             Statistics statistics = optionalStatistics.get();
             DeviceInfo deviceInfo = deviceInfoService.createInfo(request, null);
             List<String> devices = statistics.getDevices();
-            devices.add(deviceInfo.getId());
-            statistics.setDevices(devices);
+            if (devices.stream().noneMatch(o -> o.equals(deviceInfo.getId()))){
+                devices.add(deviceInfo.getId());
+                statistics.setDevices(devices);
+            }
             statistics.setMainPageViews(statistics.getMainPageViews() + 1);
             statisticsRepository.save(statistics);
         }

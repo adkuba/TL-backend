@@ -48,47 +48,51 @@ public class DataStartupService {
         String lorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus gravida dui feugiat risus vehicula, vel placerat velit auctor. Sed lobortis tellus ut ullamcorper sagittis. Duis eget aliquam metus, ac sodales nunc. Integer imperdiet feugiat feugiat. Sed vel auctor nisi. Suspendisse potenti. Donec tellus velit, fringilla ac orci vitae, rhoncus placerat lacus. Integer in dictum nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum a risus nec eros pretium rhoncus. Integer a dignissim urna. Duis tempus odio eu elit consequat, eget placerat tortor sodales. Nulla finibus, nisi sed pellentesque laoreet, purus orci tincidunt sem, sit amet egestas sem dui in lorem.";
 
         //indexing
-        if (userRepository.findByUsername("akuba").isEmpty()){
-            TextIndexDefinition textIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
-                    .onField("description")
-                    .onField("descriptionTitle")
-                    .build();
+        TextIndexDefinition textIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
+                .onField("description")
+                .onField("descriptionTitle")
+                .build();
 
-            TextIndexDefinition eventTextIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
-                    .onField("description")
-                    .onField("title")
-                    .build();
+        TextIndexDefinition eventTextIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
+                .onField("description")
+                .onField("title")
+                .build();
 
-            TextIndexDefinition userTextIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
-                    .onField("username")
-                    .build();
+        TextIndexDefinition userTextIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
+                .onField("username")
+                .build();
 
-            mongoTemplate.indexOps(User.class).ensureIndex(userTextIndex);
-            mongoTemplate.indexOps(Event.class).ensureIndex(eventTextIndex);
-            mongoTemplate.indexOps(Timeline.class).ensureIndex(textIndex);
+        mongoTemplate.indexOps(User.class).ensureIndex(userTextIndex);
+        mongoTemplate.indexOps(Event.class).ensureIndex(eventTextIndex);
+        mongoTemplate.indexOps(Timeline.class).ensureIndex(textIndex);
 
-
-            Role admin = new Role();
-            admin.setName(ERole.ROLE_ADMIN);
+        //ROLE
+        Role admin = new Role();
+        admin.setName(ERole.ROLE_ADMIN);
+        if (roleRepository.findByName(ERole.ROLE_ADMIN).isEmpty()){
             roleRepository.save(admin);
             Role userR = new Role();
             userR.setName(ERole.ROLE_USER);
             roleRepository.save(userR);
+        }
 
+        //stats
+        if (statisticsRepository.findByDay(LocalDate.now()).isEmpty()){
             Statistics statistics = new Statistics();
             statistics.setDay(LocalDate.now());
-            statistics.setNumberOfUsers(1);
             statisticsRepository.save(statistics);
+        }
 
-            User kuba = new User();
-            kuba.setFullName("Jakub Adamski");
-            kuba.setEmail("akuba@exemplum.pl");
-            kuba.setUsername("akuba");
-            kuba.setPassword(encoder.encode("funia"));
-            Set<Role> roles = new HashSet<>();
-            roles.add(admin);
-            kuba.setRoles(roles);
-
+        //admin
+        User kuba = new User();
+        kuba.setFullName("Jakub Adamski");
+        kuba.setEmail("akuba@exemplum.pl");
+        kuba.setUsername("akuba");
+        kuba.setPassword(encoder.encode("funia"));
+        Set<Role> roles = new HashSet<>();
+        roles.add(admin);
+        kuba.setRoles(roles);
+        if (userRepository.findByUsername("akuba").isEmpty()){
             //STRIPE
             Map<String, Object> customerParams = new HashMap<String, Object>();
             customerParams.put("email", kuba.getEmail());
@@ -96,9 +100,10 @@ public class DataStartupService {
             kuba.setStripeID(customer.getId());
 
             userRepository.save(kuba);
+        }
 
-
-            //main
+        //timeline
+        if (timelineRepository.findById("kubatl").isEmpty()){
             Timeline timeline = new Timeline();
             timeline.setUser(kuba);
             timeline.setDescriptionTitle("Me");
@@ -106,7 +111,6 @@ public class DataStartupService {
             timeline.setId("kubatl");
             timeline.setPictures(new ArrayList<>());
             timelineRepository.save(timeline);
-
 
             Event trackingEvent = new Event();
             trackingEvent.setTitle("Object Tracking");

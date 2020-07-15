@@ -12,4 +12,7 @@ public class AppProperties {
     private String domain;
     private String stripeKey;
     private String googleRecaptcha;
+    private String mailBeginning;
+    private String mailMid;
+    private String mailEnd;
 }

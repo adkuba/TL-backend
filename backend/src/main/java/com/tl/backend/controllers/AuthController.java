@@ -244,7 +244,7 @@ public class AuthController {
             message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(signUpRequest.getEmail()));
             message.setSubject("Welcome");
-            message.setContent("<h1>Welcome on Tline</h1><br>Thank you for creating account!", "text/html");
+            message.setContent(appProperties.getMailBeginning() + "Welcome " + appProperties.getMailMid() + "Thank you for creating account!\n\n User: " + user.getUsername() + " start discover new timelines on our homepage. \n\n That's not you? Take control of this account and reset password!" + appProperties.getMailEnd() , "text/html");
             emailSender.send(message);
 
         } catch (MessagingException | UnsupportedEncodingException e) {
@@ -287,7 +287,7 @@ public class AuthController {
                 message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(email));
                 message.setSubject("Reset password");
-                message.setContent("<h1>Reset your password</h1> Click this link <a href='http://localhost:8080/passwordReset/" + token + "'>reset</a>", "text/html");
+                message.setContent(appProperties.getMailBeginning() + "Reset your password " + appProperties.getMailMid() + "Click this link <a href='http://localhost:8080/passwordReset/" + token + "'>reset</a> \n\n That's not you? Change password! " + appProperties.getMailEnd(), "text/html");
                 emailSender.send(message);
                 return ResponseEntity.ok(new MessageResponse("Email send!"));
 
@@ -308,6 +308,16 @@ public class AuthController {
                 user.setPassword(encoder.encode(passwordResetRequest.getNewPassword()));
                 user.setPasswordResetToken(null);
                 userRepository.save(user);
+                try {
+                    MimeMessage message = emailSender.createMimeMessage();
+                    message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                    message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
+                    message.setSubject("Password changed");
+                    message.setContent(appProperties.getMailBeginning() + "New password " + appProperties.getMailMid() + "Your password has been changed." + "\n\n You didn't changed your password? Reset it! " + appProperties.getMailEnd(), "text/html");
+                    emailSender.send(message);
+                } catch (MessagingException | UnsupportedEncodingException e) {
+                    //e.printStackTrace();
+                }
                 return ResponseEntity.ok(new MessageResponse("Password changed!"));
 
             } else {

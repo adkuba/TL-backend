@@ -2,6 +2,7 @@ package com.tl.backend.services;
 
 import com.stripe.exception.StripeException;
 import com.stripe.model.Subscription;
+import com.tl.backend.config.AppProperties;
 import com.tl.backend.fileHandling.FileResource;
 import com.tl.backend.fileHandling.FileResourceRepository;
 import com.tl.backend.fileHandling.FileServiceImpl;
@@ -22,9 +23,15 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.TextCriteria;
 import org.springframework.data.mongodb.core.query.TextQuery;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
@@ -42,10 +49,14 @@ public class TimelineServiceImpl implements TimelineService {
     private final UserRepository userRepository;
     private final FileResourceRepository fileResourceRepository;
     private final UserServiceImpl userService;
+    private final JavaMailSender emailSender;
+    private final AppProperties appProperties;
 
     @Autowired
-    public TimelineServiceImpl(UserServiceImpl userService, UserRepository userRepository, FileResourceRepository fileResourceRepository, TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate, EventRepository eventRepository){
+    public TimelineServiceImpl(AppProperties appProperties, JavaMailSender emailSender, UserServiceImpl userService, UserRepository userRepository, FileResourceRepository fileResourceRepository, TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate, EventRepository eventRepository){
         this.timelineRepository = timelineRepository;
+        this.appProperties = appProperties;
+        this.emailSender = emailSender;
         this.userService = userService;
         this.userRepository = userRepository;
         this.fileResourceRepository = fileResourceRepository;
@@ -95,7 +106,7 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     @Override
-    public void deleteMineTimelineById(String id, Boolean delPictures) {
+    public void deleteMineTimelineById(String id, Boolean delPictures, String reason) {
         Optional<Timeline> optionalTimeline = timelineRepository.findById(id);
         if (optionalTimeline.isPresent()){
             Timeline timeline = optionalTimeline.get();
@@ -125,7 +136,23 @@ public class TimelineServiceImpl implements TimelineService {
             }
             timelineRepository.delete(timeline);
             Optional<User> optionalUser = userRepository.findById(timeline.getUser().getId());
-            optionalUser.ifPresent(user -> userService.disableTimelines(user.getUsername()));
+            if (optionalUser.isPresent()){
+                User user = optionalUser.get();
+                userService.disableTimelines(user.getUsername());
+
+                if (reason != null){
+                    try {
+                        MimeMessage message = emailSender.createMimeMessage();
+                        message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                        message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
+                        message.setSubject("Timeline");
+                        message.setContent(appProperties.getMailBeginning() + "Deleted " + appProperties.getMailMid() + "Your timeline has been deleted. \n\n Message: \n" + reason + "\n\n You can reply to this email. " + appProperties.getMailEnd(), "text/html");
+                        emailSender.send(message);
+                    } catch (MessagingException | UnsupportedEncodingException e) {
+                        //e.printStackTrace();
+                    }
+                }
+            }
         }
     }
 
@@ -268,7 +295,7 @@ public class TimelineServiceImpl implements TimelineService {
     public void deleteUserTimelines(String username) {
         List<Timeline> timelines = getUserTimelines(username);
         for (Timeline timeline : timelines){
-            deleteMineTimelineById(timeline.getId(), true);
+            deleteMineTimelineById(timeline.getId(), true, null);
         }
     }
 

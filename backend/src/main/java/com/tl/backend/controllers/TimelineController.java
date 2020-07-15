@@ -55,7 +55,7 @@ public class TimelineController {
             }
         }
         if (withDelete){
-            timelineService.deleteMineTimelineById(timeline.getId(), false);
+            timelineService.deleteMineTimelineById(timeline.getId(), false, null);
         }
         if (findUser){
             Optional<User> optionalUser = userRepository.findByUsername(authentication.getName());
@@ -105,7 +105,7 @@ public class TimelineController {
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<?> deleteMainTimeline(Authentication authentication, @PathVariable String id){
+    public ResponseEntity<?> deleteMainTimeline(Authentication authentication, @PathVariable String id, @RequestParam String reason){
         boolean isAdmin = false;
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         for (GrantedAuthority grantedAuthority : authorities){
@@ -117,7 +117,7 @@ public class TimelineController {
         Optional<Timeline> optionalTimeline = timelineRepository.findById(id);
         if (optionalTimeline.isPresent()){
             if (isAdmin || optionalTimeline.get().getUser().getUsername().equals(authentication.getName())){
-                timelineService.deleteMineTimelineById(id, true);
+                timelineService.deleteMineTimelineById(id, true, reason);
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
         }

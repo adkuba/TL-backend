@@ -82,8 +82,8 @@ public class UserController {
     }
 
     @PostMapping(value = "/block")
-    public ResponseEntity<?> blockUser(@RequestParam String username){
-        userService.blockUser(username);
+    public ResponseEntity<?> blockUser(@RequestParam String username, @RequestParam String reason){
+        userService.blockUser(username, reason);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

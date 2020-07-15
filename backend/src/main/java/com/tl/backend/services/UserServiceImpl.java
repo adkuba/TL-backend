@@ -6,6 +6,7 @@ import com.stripe.model.Customer;
 import com.stripe.model.PaymentMethod;
 import com.stripe.model.Subscription;
 import com.stripe.param.PaymentMethodAttachParams;
+import com.tl.backend.config.AppProperties;
 import com.tl.backend.models.InteractionEvent;
 import com.tl.backend.models.Timeline;
 import com.tl.backend.models.User;
@@ -19,12 +20,18 @@ import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -41,10 +48,14 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder encoder;
     private final TimelineRepository timelineRepository;
     private final MongoTemplate mongoTemplate;
+    private final JavaMailSender emailSender;
+    private final AppProperties appProperties;
 
     @Autowired
-    public UserServiceImpl(TimelineRepository timelineRepository, MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder, UserRepository userRepository, AuthenticationManager authenticationManager){
+    public UserServiceImpl(AppProperties appProperties, JavaMailSender emailSender, TimelineRepository timelineRepository, MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder, UserRepository userRepository, AuthenticationManager authenticationManager){
         this.userRepository = userRepository;
+        this.appProperties = appProperties;
+        this.emailSender = emailSender;
         this.timelineRepository = timelineRepository;
         this.mongoTemplate = mongoTemplate;
         this.authenticationManager = authenticationManager;
@@ -170,6 +181,16 @@ public class UserServiceImpl implements UserService {
             User user = optionalUser.get();
             user.setPassword(encoder.encode(newPassword));
             userRepository.save(user);
+            try {
+                MimeMessage message = emailSender.createMimeMessage();
+                message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
+                message.setSubject("Password changed");
+                message.setContent(appProperties.getMailBeginning() + "New password " + appProperties.getMailMid() + "Your password has been changed." + "\n\n You didn't changed your password? Reset it! " + appProperties.getMailEnd(), "text/html");
+                emailSender.send(message);
+            } catch (MessagingException | UnsupportedEncodingException e) {
+                //e.printStackTrace();
+            }
             return true;
         }
         return false;
@@ -219,6 +240,17 @@ public class UserServiceImpl implements UserService {
 
             activateTimelines(user.getUsername());
             userRepository.save(user);
+
+            try {
+                MimeMessage message = emailSender.createMimeMessage();
+                message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
+                message.setSubject("Subscription");
+                message.setContent(appProperties.getMailBeginning() + "Premium " + appProperties.getMailMid() + "You are now a premium user thank you!" + "\n\n You don't recognize this action? Reset password! " + appProperties.getMailEnd(), "text/html");
+                emailSender.send(message);
+            } catch (MessagingException | UnsupportedEncodingException e) {
+                //e.printStackTrace();
+            }
 
             return new ResponseEntity<>(subscription.toJson(), HttpStatus.OK);
         }
@@ -273,6 +305,16 @@ public class UserServiceImpl implements UserService {
             Subscription deletedSubscription = subscription.cancel();
             user.setSubscriptionID(null);
             userRepository.save(user);
+            try {
+                MimeMessage message = emailSender.createMimeMessage();
+                message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
+                message.setSubject("Subscription");
+                message.setContent(appProperties.getMailBeginning() + "Premium canceled " + appProperties.getMailMid() + "Your subscription has been canceled, premium will end at " + user.getSubscriptionEnd().toString() + "\n\n You don't recognize this action? Reset password! " + appProperties.getMailEnd(), "text/html");
+                emailSender.send(message);
+            } catch (MessagingException | UnsupportedEncodingException e) {
+                //e.printStackTrace();
+            }
             return true;
         }
         return false;
@@ -295,11 +337,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void blockUser(String username) {
+    public void blockUser(String username, String reason) {
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isPresent()){
             User user = optionalUser.get();
             user.setBlocked(true);
+            try {
+                MimeMessage message = emailSender.createMimeMessage();
+                message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
+                message.setSubject("Blocked");
+                message.setContent(appProperties.getMailBeginning() + "Info " + appProperties.getMailMid() + "Your account has been blocked and your timelines have been deleted. \n\n Message: \n" + reason + "\n\n You can reply to this email. " + appProperties.getMailEnd(), "text/html");
+                emailSender.send(message);
+            } catch (MessagingException | UnsupportedEncodingException e) {
+                //e.printStackTrace();
+            }
             userRepository.save(user);
         }
     }
