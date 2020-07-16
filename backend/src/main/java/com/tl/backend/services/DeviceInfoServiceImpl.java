@@ -3,6 +3,7 @@ package com.tl.backend.services;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
+import com.maxmind.geoip2.model.CountryResponse;
 import com.tl.backend.config.AppProperties;
 import com.tl.backend.models.DeviceInfo;
 import com.tl.backend.models.User;
@@ -154,17 +155,17 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
     private String getIpLocation(String ip) {
         String location = "UNKNOWN";
         InetAddress ipAddress = null;
-        CityResponse cityResponse = null;
+        CountryResponse countryResponse = null;
 
         try {
             ipAddress = InetAddress.getByName(ip);
-            cityResponse = databaseReader.city(ipAddress);
+            countryResponse = databaseReader.country(ipAddress);
         } catch (IOException | GeoIp2Exception e) {
             //e.printStackTrace();
         }
 
-        if (cityResponse != null && cityResponse.getCity() != null && cityResponse.getCity().getName() != null && !cityResponse.getCity().getName().equals("")) {
-            location = cityResponse.getCity().getName();
+        if (countryResponse != null && countryResponse.getCountry() != null && countryResponse.getCountry().getName() != null && !countryResponse.getCountry().getName().equals("")) {
+            location = countryResponse.getCountry().getName();
         }
         return location;
     }

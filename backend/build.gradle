@@ -1,3 +1,13 @@
+buildscript {    // Configuration for building
+	repositories {
+		jcenter()    // Bintray's repository - a fast Maven Central mirror & more
+		mavenCentral()
+	}
+	dependencies {
+		classpath 'com.google.cloud.tools:appengine-gradle-plugin:2.2.0' // If a newer version is available, use it
+	}
+}
+
 plugins {
 	id 'org.springframework.boot' version '2.2.6.RELEASE'
 	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
@@ -5,13 +15,20 @@ plugins {
 	id 'java'
 }
 
-group = 'com.tl'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '11'
+springBoot {
+	mainClassName = 'com.tl.backend.BackendApplication'
+}
 
 repositories {
 	mavenCentral()
 }
+
+group = 'com.tl'
+version = '1.0-SNAPSHOT'
+sourceCompatibility = 11
+targetCompatibility = 11
+
+apply plugin: 'com.google.cloud.tools.appengine'
 
 dependencies {
 	compile 'io.jsonwebtoken:jjwt-api:0.10.7'
@@ -36,9 +53,20 @@ dependencies {
 	compile 'com.maxmind.geoip2:geoip2:2.14.0'
 	implementation 'com.github.ua-parser:uap-java:1.4.3'
 
+	compile 'com.google.appengine:appengine-api-1.0-sdk:+'
+	compile 'com.google.cloud:google-cloud:+'
+
 	// spring content && spring content rest
 	compile group: 'com.github.paulcwarren', name: 'spring-content-fs-boot-starter', version: '1.0.0.M10'
 	compile group: 'com.github.paulcwarren', name: 'spring-content-rest-boot-starter', version: '1.0.0.M10'
+
+	// https://mvnrepository.com/artifact/org.quartz-scheduler/quartz
+	compile group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.2'
+
+	testCompile 'junit:junit:4.12'
+	testCompile 'com.google.appengine:appengine-testing:+'
+	testCompile 'com.google.appengine:appengine-api-stubs:+'
+	testCompile 'com.google.appengine:appengine-tools-sdk:+'
 
 	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
@@ -48,5 +76,26 @@ dependencies {
 }
 
 test {
-	useJUnitPlatform()
+	useJUnit()
+	testLogging.showStandardStreams = true
+	beforeTest { descriptor ->
+		logger.lifecycle("test: " + descriptor + "  Running")
+	}
+
+	onOutput { descriptor, event ->
+		logger.lifecycle("test: " + descriptor + ": " + event.message )
+	}
+	afterTest { descriptor, result ->
+		logger.lifecycle("test: " + descriptor + ": " + result )
+	}
+}
+
+appengineDeploy.dependsOn test
+appengineStage.dependsOn test
+
+appengine {  // App Engine tasks configuration
+	deploy {   // deploy configuration
+		projectId = 'tline-283413'
+		version = '1-test'
+	}
 }
