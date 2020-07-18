@@ -51,4 +51,14 @@ public class StatisticsController {
         statisticsService.addReview(review);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @GetMapping(value = "/timeline/{id}")
+    public ResponseEntity<?> getLocations(@PathVariable String id){
+        return new ResponseEntity<>(deviceInfoService.getLocations(id), HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/timeline-views/{id}")
+    public ResponseEntity<?> getViews(@PathVariable String id){
+        return new ResponseEntity<>(deviceInfoService.getViews(id), HttpStatus.OK);
+    }
 }

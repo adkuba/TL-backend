@@ -20,9 +20,11 @@ public class LoginNotificationConfig {
 
     @Bean(name="GeoIPCity")
     public DatabaseReader databaseReader() throws IOException {
-        ClassLoader cl = this.getClass().getClassLoader();
-        InputStream inputStream = cl.getResourceAsStream("classpath:maxmind/GeoLite2-Country.mmdb");
-        //File database = ResourceUtils.getFile("classpath:maxmind/GeoLite2-Country.mmdb");
-        return new DatabaseReader.Builder(inputStream).build();
+        //uncomment for google cloud
+        //ClassLoader cl = this.getClass().getClassLoader();
+        //InputStream inputStream = cl.getResourceAsStream("classpath:maxmind/GeoLite2-Country.mmdb");
+        //comment for google cloud
+        File database = ResourceUtils.getFile("classpath:maxmind/GeoLite2-Country.mmdb");
+        return new DatabaseReader.Builder(database).build();
     }
 }

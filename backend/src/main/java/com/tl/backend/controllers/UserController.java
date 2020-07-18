@@ -87,6 +87,12 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @PostMapping(value = "/unblock")
+    public ResponseEntity<?> unBlockUser(@RequestParam String username){
+        userService.unBlockUser(username);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @GetMapping(value = "/public/{username}")
     public ResponseEntity<?> checkUser(@PathVariable String username){
         User user = userService.checkUser(username);

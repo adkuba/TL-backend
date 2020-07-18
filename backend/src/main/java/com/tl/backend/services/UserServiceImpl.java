@@ -357,6 +357,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void unBlockUser(String username) {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isPresent()){
+            User user = optionalUser.get();
+            user.setBlocked(false);
+            try {
+                MimeMessage message = emailSender.createMimeMessage();
+                message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
+                message.setSubject("Unblocked");
+                message.setContent(appProperties.getMailBeginning() + "Info " + appProperties.getMailMid() + "Your account has been unblocked" + appProperties.getMailEnd(), "text/html");
+                emailSender.send(message);
+            } catch (MessagingException | UnsupportedEncodingException e) {
+                //e.printStackTrace();
+            }
+            userRepository.save(user);
+        }
+    }
+
+    @Override
     public void disableTimelines(String username) {
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isPresent()){

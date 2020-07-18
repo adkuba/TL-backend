@@ -167,6 +167,8 @@ public class AuthController {
             String refreshToken = refreshUserToken(requestedUser.getEmail());
             response.addCookie(createCookie("refresh_token", refreshToken, true));
 
+            deviceInfoService.createInfo(request, userResponse.getUsername());
+
             return ResponseEntity.ok(new JwtResponse(jwt,
                     creationTime,
                     userResponse));

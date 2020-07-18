@@ -2,16 +2,17 @@ package com.tl.backend.services;
 
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
-import com.maxmind.geoip2.model.CityResponse;
 import com.maxmind.geoip2.model.CountryResponse;
 import com.tl.backend.config.AppProperties;
 import com.tl.backend.models.DeviceInfo;
+import com.tl.backend.models.InteractionEvent;
+import com.tl.backend.models.Timeline;
 import com.tl.backend.models.User;
 import com.tl.backend.repositories.DeviceInfoRepository;
+import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
-import com.tl.backend.response.MessageResponse;
+import com.tl.backend.response.StatResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import ua_parser.Client;
@@ -25,11 +26,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 
 @Service
@@ -41,10 +39,12 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
     private final JavaMailSender emailSender;
     private final UserRepository userRepository;
     private final AppProperties appProperties;
+    private final TimelineRepository timelineRepository;
 
     @Autowired
-    public DeviceInfoServiceImpl(AppProperties appProperties, UserRepository userRepository, JavaMailSender emailSender, Parser parser, DatabaseReader databaseReader, DeviceInfoRepository deviceInfoRepository){
+    public DeviceInfoServiceImpl(TimelineRepository timelineRepository, AppProperties appProperties, UserRepository userRepository, JavaMailSender emailSender, Parser parser, DatabaseReader databaseReader, DeviceInfoRepository deviceInfoRepository){
         this.parser = parser;
+        this.timelineRepository = timelineRepository;
         this.appProperties = appProperties;
         this.userRepository = userRepository;
         this.emailSender = emailSender;
@@ -64,7 +64,7 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
             DeviceInfo existingDevice = findExistingDevice(username, deviceDetails, location);
             //existing
             if (existingDevice != null){
-                existingDevice.setLastLoggedIn(LocalDate.now());
+                existingDevice.setLastLogged(LocalDate.now());
                 deviceInfoRepository.save(existingDevice);
                 return existingDevice;
 
@@ -89,7 +89,7 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
                 deviceInfo.setIp(ip);
                 deviceInfo.setLocation(location);
                 deviceInfo.setDeviceDetails(deviceDetails);
-                deviceInfo.setLastLoggedIn(LocalDate.now());
+                deviceInfo.setLastLogged(LocalDate.now());
                 deviceInfoRepository.save(deviceInfo);
                 return deviceInfo;
             }
@@ -113,6 +113,55 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
     @Override
     public List<DeviceInfo> getAll() {
         return deviceInfoRepository.findAll();
+    }
+
+    @Override
+    public List<StatResponse> getLocations(String timelineId) {
+        Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
+        if (optionalTimeline.isPresent()){
+            Timeline timeline = optionalTimeline.get();
+            List<DeviceInfo> devices = new ArrayList<>();
+            for(InteractionEvent view : timeline.getViewsDetails()){
+                Optional<DeviceInfo> optionalDeviceInfo = deviceInfoRepository.findById(view.getDeviceId());
+                optionalDeviceInfo.ifPresent(devices :: add);
+            }
+            List<String> locations = new ArrayList<>();
+            for (DeviceInfo deviceInfo : devices){
+                locations.add(deviceInfo.getLocation());
+            }
+            HashSet<String> locationsHashSet = new HashSet<>(locations);
+            List<StatResponse> statRespons = new ArrayList<>();
+            for (String location : locationsHashSet){
+                StatResponse statResponse = new StatResponse();
+                statResponse.setLocation(location);
+                statResponse.setNumber(Collections.frequency(locations, location));
+                statRespons.add(statResponse);
+            }
+            return statRespons;
+        }
+        return null;
+    }
+
+    @Override
+    public List<StatResponse> getViews(String timelineId) {
+        Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
+        if (optionalTimeline.isPresent()){
+            Timeline timeline = optionalTimeline.get();
+            List<LocalDate> dates = new ArrayList<>();
+            for (InteractionEvent interactionEvent : timeline.getViewsDetails()){
+                dates.add(interactionEvent.getDate());
+            }
+            HashSet<LocalDate> localDateHashSet = new HashSet<>(dates);
+            List<StatResponse> statResponses = new ArrayList<>();
+            for (LocalDate localDate : localDateHashSet){
+                StatResponse statResponse = new StatResponse();
+                statResponse.setDate(localDate);
+                statResponse.setNumber(Collections.frequency(dates, localDate));
+                statResponses.add(statResponse);
+            }
+            return statResponses;
+        }
+        return null;
     }
 
     private DeviceInfo findExistingDeviceNoUser(String deviceDetails, String location){

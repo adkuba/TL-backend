@@ -19,6 +19,7 @@ public class Statistics {
     private long totalTimelinesViews = 0;
     private long mainPageViews = 0;
     private long numberOfUsers = 0;
+    private long activeUsers = 0;
     private LocalDate day;
     private List<Review> reviews = new ArrayList<>();
     private List<String> devices = new ArrayList<>();

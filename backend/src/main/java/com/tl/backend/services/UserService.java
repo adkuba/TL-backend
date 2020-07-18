@@ -36,5 +36,7 @@ public interface UserService {
 
     void blockUser(String username, String reason);
 
+    void unBlockUser(String username);
+
     void disableTimelines(String username);
 }

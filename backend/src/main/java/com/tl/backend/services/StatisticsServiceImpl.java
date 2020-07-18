@@ -2,6 +2,7 @@ package com.tl.backend.services;
 
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.tl.backend.models.*;
+import com.tl.backend.repositories.DeviceInfoRepository;
 import com.tl.backend.repositories.StatisticsRepository;
 import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
@@ -20,10 +21,12 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     private final StatisticsRepository statisticsRepository;
     private final DeviceInfoServiceImpl deviceInfoService;
+    private final DeviceInfoRepository deviceInfoRepository;
 
     @Autowired
-    public StatisticsServiceImpl(DeviceInfoServiceImpl deviceInfoService, StatisticsRepository statisticsRepository){
+    public StatisticsServiceImpl(DeviceInfoRepository deviceInfoRepository, DeviceInfoServiceImpl deviceInfoService, StatisticsRepository statisticsRepository){
         this.statisticsRepository = statisticsRepository;
+        this.deviceInfoRepository = deviceInfoRepository;
         this.deviceInfoService = deviceInfoService;
     }
 
@@ -69,5 +72,19 @@ public class StatisticsServiceImpl implements StatisticsService {
         now = now.plusDays(1);
         statistics.setDay(now);
         statisticsRepository.save(statistics);
+    }
+
+    //everyday at 01:00?
+    @Scheduled(cron = "0 0 1 * * *")
+    private void activeUsers (){
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+
+        Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(yesterday);
+        if(optionalStatistics.isPresent()){
+            Statistics statistics = optionalStatistics.get();
+            List<DeviceInfo> deviceInfos = deviceInfoRepository.findByLastLogged(yesterday);
+            statistics.setActiveUsers(deviceInfos.size());
+            statisticsRepository.save(statistics);
+        }
     }
 }

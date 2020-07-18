@@ -19,5 +19,5 @@ public class DeviceInfo {
     private String deviceDetails;
     private String ip;
     private String username;
-    private LocalDate lastLoggedIn;
+    private LocalDate lastLogged;
 }
