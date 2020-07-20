@@ -16,10 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -50,11 +47,25 @@ public class EventServiceImpl implements EventService {
             Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
             if (optionalTimeline.isPresent()){
                 Timeline timeline = optionalTimeline.get();
-                InteractionEvent viewEvent = new InteractionEvent();
                 DeviceInfo deviceInfo = deviceInfoService.createInfo(request, null);
-                viewEvent.setDeviceId(deviceInfo.getId());
-                List<InteractionEvent> views = timeline.getViewsDetails();
-                views.add(viewEvent);
+                Map<LocalDate, Map<String, Long>> views = timeline.getViewsDetails();
+                //first in day
+                if (!views.containsKey(LocalDate.now())){
+                    Map<String, Long> deviceInDay = new HashMap<>();
+                    deviceInDay.put(deviceInfo.getId(), 1L);
+                    views.put(LocalDate.now(), deviceInDay);
+                } else {
+                    //there is day
+                    Map<String, Long> devicesInDay = views.get(LocalDate.now());
+                    if (devicesInDay.containsKey(deviceInfo.getId())){
+                        //this device exists
+                        devicesInDay.put(deviceInfo.getId(), devicesInDay.get(deviceInfo.getId()) + 1);
+                    } else {
+                        //this device doesn't exists
+                        devicesInDay.put(deviceInfo.getId(), 0L);
+                    }
+                    views.put(LocalDate.now(), devicesInDay);
+                }
                 timeline.setViewsDetails(views);
                 timeline.viewsNumber();
                 timelineRepository.save(timeline);
@@ -64,9 +75,13 @@ public class EventServiceImpl implements EventService {
                 if (optionalStatistics.isPresent()){
                     Statistics statistics = optionalStatistics.get();
                     statistics.setTotalTimelinesViews(statistics.getTotalTimelinesViews() + 1);
-                    List<String> devices = statistics.getDevices();
-                    devices.add(deviceInfo.getId());
-                    statistics.setDevices(devices);
+                    Map<String, Long> devices = statistics.getDevices();
+                    if (!devices.containsKey(deviceInfo.getId())){
+                        devices.put(deviceInfo.getId(), 0L);
+                        statistics.setDevices(devices);
+                    } else {
+                        devices.put(deviceInfo.getId(), devices.get(deviceInfo.getId())+1 );
+                    }
                     statisticsRepository.save(statistics);
                 }
             }

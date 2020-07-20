@@ -277,6 +277,7 @@ public class TimelineServiceImpl implements TimelineService {
         if (optionalTimeline.isPresent()){
             Timeline timeline = optionalTimeline.get();
             timeline.setReported(true);
+            timeline.setNumberOfReports(timeline.getNumberOfReports()+1);
             timelineRepository.save(timeline);
         }
     }

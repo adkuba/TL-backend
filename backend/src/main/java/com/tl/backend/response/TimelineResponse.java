@@ -28,4 +28,5 @@ public class TimelineResponse {
     private String category;
     private List<InteractionEvent> likes;
     private List<URL> pictures;
+    private long numberOfReports;
 }

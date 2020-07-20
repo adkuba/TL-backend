@@ -120,24 +120,32 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
         Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
         if (optionalTimeline.isPresent()){
             Timeline timeline = optionalTimeline.get();
-            List<DeviceInfo> devices = new ArrayList<>();
-            for(InteractionEvent view : timeline.getViewsDetails()){
-                Optional<DeviceInfo> optionalDeviceInfo = deviceInfoRepository.findById(view.getDeviceId());
-                optionalDeviceInfo.ifPresent(devices :: add);
+
+            Map<LocalDate, Map<String, Long>> views = timeline.getViewsDetails();
+            Map<String, Long> locations = new HashMap<>();
+            for (Map<String, Long> devicesInDay : views.values()){
+                for (String deviceId : devicesInDay.keySet()){
+                    Optional<DeviceInfo> optionalDeviceInfo = deviceInfoRepository.findById(deviceId);
+                    if (optionalDeviceInfo.isPresent()){
+                        DeviceInfo deviceInfo = optionalDeviceInfo.get();
+                        if (!locations.containsKey(deviceInfo.getLocation())){
+                            //location doesn't exists
+                            locations.put(deviceInfo.getLocation(), devicesInDay.get(deviceId));
+                        } else {
+                            //location exists
+                            locations.put(deviceInfo.getLocation(), locations.get(deviceInfo.getLocation()) + devicesInDay.get(deviceId));
+                        }
+                    }
+                }
             }
-            List<String> locations = new ArrayList<>();
-            for (DeviceInfo deviceInfo : devices){
-                locations.add(deviceInfo.getLocation());
-            }
-            HashSet<String> locationsHashSet = new HashSet<>(locations);
-            List<StatResponse> statRespons = new ArrayList<>();
-            for (String location : locationsHashSet){
+            List<StatResponse> statResponses = new ArrayList<>();
+            for (String location : locations.keySet()){
                 StatResponse statResponse = new StatResponse();
                 statResponse.setLocation(location);
-                statResponse.setNumber(Collections.frequency(locations, location));
-                statRespons.add(statResponse);
+                statResponse.setNumber(locations.get(location));
+                statResponses.add(statResponse);
             }
-            return statRespons;
+            return statResponses;
         }
         return null;
     }
@@ -147,16 +155,19 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
         Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
         if (optionalTimeline.isPresent()){
             Timeline timeline = optionalTimeline.get();
-            List<LocalDate> dates = new ArrayList<>();
-            for (InteractionEvent interactionEvent : timeline.getViewsDetails()){
-                dates.add(interactionEvent.getDate());
-            }
-            HashSet<LocalDate> localDateHashSet = new HashSet<>(dates);
+
+            //there can be missing days in case of low views number!
+            Map<LocalDate, Map<String, Long>> views = timeline.getViewsDetails();
             List<StatResponse> statResponses = new ArrayList<>();
-            for (LocalDate localDate : localDateHashSet){
+            for (LocalDate day : views.keySet()){
                 StatResponse statResponse = new StatResponse();
-                statResponse.setDate(localDate);
-                statResponse.setNumber(Collections.frequency(dates, localDate));
+                statResponse.setDate(day);
+                Map<String, Long> devicesInDay = views.get(day);
+                long viewsInDay = 0L;
+                for (Long nuberOfViews : devicesInDay.values()){
+                    viewsInDay += nuberOfViews;
+                }
+                statResponse.setNumber(viewsInDay);
                 statResponses.add(statResponse);
             }
             return statResponses;

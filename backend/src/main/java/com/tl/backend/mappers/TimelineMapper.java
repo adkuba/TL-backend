@@ -3,6 +3,7 @@ package com.tl.backend.mappers;
 import com.tl.backend.models.Event;
 import com.tl.backend.models.Timeline;
 import com.tl.backend.response.EventResponse;
+import com.tl.backend.response.FullTimelineResponse;
 import com.tl.backend.response.TimelineResponse;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.IterableMapping;
@@ -19,4 +20,7 @@ public interface TimelineMapper {
 
     @IterableMapping(elementTargetType = TimelineResponse.class)
     List<TimelineResponse> timelinesResponse(List<Timeline> timelines);
+
+    @BeanMapping(resultType = FullTimelineResponse.class)
+    FullTimelineResponse fullTimelineResponse(Timeline timeline);
 }

@@ -11,5 +11,5 @@ public class StatResponse {
 
     private LocalDate date;
     private String location;
-    private Integer number;
+    private Long number;
 }

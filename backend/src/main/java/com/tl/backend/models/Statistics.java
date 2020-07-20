@@ -7,7 +7,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Document(collection = "statistics")
 @Data
@@ -21,6 +23,5 @@ public class Statistics {
     private long numberOfUsers = 0;
     private long activeUsers = 0;
     private LocalDate day;
-    private List<Review> reviews = new ArrayList<>();
-    private List<String> devices = new ArrayList<>();
+    private Map<String, Long> devices = new HashMap<>();
 }

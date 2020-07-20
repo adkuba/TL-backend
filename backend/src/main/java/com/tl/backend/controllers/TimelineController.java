@@ -105,7 +105,7 @@ public class TimelineController {
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity<?> deleteMainTimeline(Authentication authentication, @PathVariable String id, @RequestParam String reason){
+    public ResponseEntity<?> deleteMainTimeline(Authentication authentication, @PathVariable String id, @RequestParam(required = false) String reason){
         boolean isAdmin = false;
         Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
         for (GrantedAuthority grantedAuthority : authorities){
@@ -225,6 +225,11 @@ public class TimelineController {
     @GetMapping(value ="/public", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getTimelineById(@RequestParam(required = false) String username, @NotNull @RequestParam String id) throws StripeException {
         return ResponseEntity.ok(timelineMapper.timelineResponse(timelineService.getTimelineById(id, username)));
+    }
+
+    @GetMapping(value ="/editor", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> getTimelineByIdEditor(@RequestParam(required = false) String username, @NotNull @RequestParam String id) throws StripeException {
+        return ResponseEntity.ok(timelineMapper.fullTimelineResponse(timelineService.getTimelineById(id, username)));
     }
 
     @PostMapping(value = "/public/report")
