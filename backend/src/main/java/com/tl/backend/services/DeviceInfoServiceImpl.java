@@ -4,11 +4,9 @@ import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CountryResponse;
 import com.tl.backend.config.AppProperties;
-import com.tl.backend.models.DeviceInfo;
-import com.tl.backend.models.InteractionEvent;
-import com.tl.backend.models.Timeline;
-import com.tl.backend.models.User;
+import com.tl.backend.models.*;
 import com.tl.backend.repositories.DeviceInfoRepository;
+import com.tl.backend.repositories.StatisticsRepository;
 import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
 import com.tl.backend.response.StatResponse;
@@ -40,10 +38,12 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
     private final UserRepository userRepository;
     private final AppProperties appProperties;
     private final TimelineRepository timelineRepository;
+    private final StatisticsRepository statisticsRepository;
 
     @Autowired
-    public DeviceInfoServiceImpl(TimelineRepository timelineRepository, AppProperties appProperties, UserRepository userRepository, JavaMailSender emailSender, Parser parser, DatabaseReader databaseReader, DeviceInfoRepository deviceInfoRepository){
+    public DeviceInfoServiceImpl(StatisticsRepository statisticsRepository, TimelineRepository timelineRepository, AppProperties appProperties, UserRepository userRepository, JavaMailSender emailSender, Parser parser, DatabaseReader databaseReader, DeviceInfoRepository deviceInfoRepository){
         this.parser = parser;
+        this.statisticsRepository = statisticsRepository;
         this.timelineRepository = timelineRepository;
         this.appProperties = appProperties;
         this.userRepository = userRepository;
@@ -64,6 +64,10 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
             DeviceInfo existingDevice = findExistingDevice(username, deviceDetails, location);
             //existing
             if (existingDevice != null){
+                if (!existingDevice.getLastLogged().equals(LocalDate.now())){
+                    checkStatistics();
+                    activeUsers();
+                }
                 existingDevice.setLastLogged(LocalDate.now());
                 deviceInfoRepository.save(existingDevice);
                 return existingDevice;
@@ -91,6 +95,8 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
                 deviceInfo.setDeviceDetails(deviceDetails);
                 deviceInfo.setLastLogged(LocalDate.now());
                 deviceInfoRepository.save(deviceInfo);
+                checkStatistics();
+                activeUsers();
                 return deviceInfo;
             }
         } else {
@@ -107,6 +113,25 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
                 deviceInfoRepository.save(deviceInfo);
                 return deviceInfo;
             }
+        }
+    }
+
+    //duplicate from statisticService but cant get looped beans
+    private void checkStatistics() {
+        Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(LocalDate.now());
+        if (optionalStatistics.isEmpty()){
+            Statistics statistics = new Statistics();
+            statistics.setDay(LocalDate.now());
+            statisticsRepository.save(statistics);
+        }
+    }
+
+    private void activeUsers(){
+        Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(LocalDate.now());
+        if (optionalStatistics.isPresent()){
+            Statistics statistics = optionalStatistics.get();
+            statistics.setActiveUsers(statistics.getActiveUsers() + 1);
+            statisticsRepository.save(statistics);
         }
     }
 

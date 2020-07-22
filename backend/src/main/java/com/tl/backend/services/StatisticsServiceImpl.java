@@ -46,6 +46,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Override
     public void incrementHomepageViews(HttpServletRequest request) {
+        checkStatistics();
         Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(LocalDate.now());
         if (optionalStatistics.isPresent()){
             Statistics statistics = optionalStatistics.get();
@@ -86,27 +87,12 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
     }
 
-    //everyday at 23:00?
-    @Scheduled(cron = "0 0 23 * * *")
-    private void createStatistics (){
-        LocalDate now = LocalDate.now();
-
-        Statistics statistics = new Statistics();
-        now = now.plusDays(1);
-        statistics.setDay(now);
-        statisticsRepository.save(statistics);
-    }
-
-    //everyday at 01:00?
-    @Scheduled(cron = "0 0 1 * * *")
-    private void activeUsers (){
-        LocalDate yesterday = LocalDate.now().minusDays(1);
-
-        Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(yesterday);
-        if(optionalStatistics.isPresent()){
-            Statistics statistics = optionalStatistics.get();
-            List<DeviceInfo> deviceInfos = deviceInfoRepository.findByLastLogged(yesterday);
-            statistics.setActiveUsers(deviceInfos.size());
+    @Override
+    public void checkStatistics() {
+        Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(LocalDate.now());
+        if (optionalStatistics.isEmpty()){
+            Statistics statistics = new Statistics();
+            statistics.setDay(LocalDate.now());
             statisticsRepository.save(statistics);
         }
     }

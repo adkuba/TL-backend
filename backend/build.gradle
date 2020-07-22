@@ -62,9 +62,6 @@ dependencies {
 	compile group: 'com.github.paulcwarren', name: 'spring-content-fs-boot-starter', version: '1.0.0.M10'
 	compile group: 'com.github.paulcwarren', name: 'spring-content-rest-boot-starter', version: '1.0.0.M10'
 
-	// https://mvnrepository.com/artifact/org.quartz-scheduler/quartz
-	compile group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.2'
-
 	testCompile 'junit:junit:4.12'
 	testCompile 'com.google.appengine:appengine-testing:+'
 	testCompile 'com.google.appengine:appengine-api-stubs:+'

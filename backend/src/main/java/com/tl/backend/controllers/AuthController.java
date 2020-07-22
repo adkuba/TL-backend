@@ -16,10 +16,7 @@ import com.tl.backend.response.JwtResponse;
 import com.tl.backend.response.MessageResponse;
 import com.tl.backend.response.UserResponse;
 import com.tl.backend.security.JwtUtils;
-import com.tl.backend.services.CaptchaService;
-import com.tl.backend.services.DeviceInfoServiceImpl;
-import com.tl.backend.services.UserDetailsImpl;
-import com.tl.backend.services.UserService;
+import com.tl.backend.services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -68,10 +65,12 @@ public class AuthController {
     private final StatisticsRepository statisticsRepository;
     private final JavaMailSender emailSender;
     private final DeviceInfoServiceImpl deviceInfoService;
+    private final StatisticsServiceImpl statisticsService;
 
     @Autowired
-    public AuthController(DeviceInfoServiceImpl deviceInfoService, JavaMailSender emailSender, UserService userService, CaptchaService captchaService, StatisticsRepository statisticsRepository, UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
+    public AuthController(StatisticsServiceImpl statisticsService, DeviceInfoServiceImpl deviceInfoService, JavaMailSender emailSender, UserService userService, CaptchaService captchaService, StatisticsRepository statisticsRepository, UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
         this.appProperties = appProperties;
+        this.statisticsService = statisticsService;
         this.deviceInfoService = deviceInfoService;
         this.emailSender = emailSender;
         this.userService = userService;
@@ -233,6 +232,7 @@ public class AuthController {
         userRepository.save(user);
 
         //main stats
+        statisticsService.checkStatistics();
         Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(LocalDate.now());
         if (optionalStatistics.isPresent()){
             Statistics statistics = optionalStatistics.get();

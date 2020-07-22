@@ -15,4 +15,6 @@ public interface StatisticsService {
     List<Statistics> getAllStats();
 
     void addReview(Review review);
+
+    void checkStatistics();
 }

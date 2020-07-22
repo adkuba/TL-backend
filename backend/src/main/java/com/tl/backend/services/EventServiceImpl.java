@@ -27,12 +27,14 @@ public class EventServiceImpl implements EventService {
     private final TimelineRepository timelineRepository;
     private final StatisticsRepository statisticsRepository;
     private final DeviceInfoServiceImpl deviceInfoService;
+    private final StatisticsServiceImpl statisticsService;
 
     @Autowired
-    public EventServiceImpl(DeviceInfoServiceImpl deviceInfoService, StatisticsRepository statisticsRepository, TimelineRepository timelineRepository, FileResourceRepository fileResourceRepository, EventRepository eventRepository, FileServiceImpl fileService){
+    public EventServiceImpl(StatisticsServiceImpl statisticsService, DeviceInfoServiceImpl deviceInfoService, StatisticsRepository statisticsRepository, TimelineRepository timelineRepository, FileResourceRepository fileResourceRepository, EventRepository eventRepository, FileServiceImpl fileService){
         this.eventRepository = eventRepository;
         this.deviceInfoService = deviceInfoService;
         this.statisticsRepository = statisticsRepository;
+        this.statisticsService = statisticsService;
         this.fileResourceRepository = fileResourceRepository;
         this.fileService = fileService;
         this.timelineRepository = timelineRepository;
@@ -71,6 +73,7 @@ public class EventServiceImpl implements EventService {
                 timelineRepository.save(timeline);
 
                 //main stats
+                statisticsService.checkStatistics();
                 Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(LocalDate.now());
                 if (optionalStatistics.isPresent()){
                     Statistics statistics = optionalStatistics.get();
