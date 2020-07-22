@@ -46,6 +46,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
+	compile 'com.google.cloud:google-cloud-storage:1.111.2'
+
 	// https://mvnrepository.com/artifact/com.stripe/stripe-java
 	compile group: 'com.stripe', name: 'stripe-java', version: '19.23.0'
 
@@ -96,6 +98,6 @@ appengineStage.dependsOn test
 appengine {  // App Engine tasks configuration
 	deploy {   // deploy configuration
 		projectId = 'tline-283413'
-		version = '1-test'
+		version = '1'
 	}
 }
