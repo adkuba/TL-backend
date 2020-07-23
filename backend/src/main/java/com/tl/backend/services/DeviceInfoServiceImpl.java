@@ -62,16 +62,12 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
         if (username != null){
             //device info for user login
             DeviceInfo existingDevice = findExistingDevice(username, deviceDetails, location);
+            activeUsers(username);
             //existing
             if (existingDevice != null){
-                if (!existingDevice.getLastLogged().equals(LocalDate.now())){
-                    checkStatistics();
-                    activeUsers();
-                }
                 existingDevice.setLastLogged(LocalDate.now());
                 deviceInfoRepository.save(existingDevice);
                 return existingDevice;
-
             } else {
                 //don't exists SEND NOTIFICATION
                 try {
@@ -95,8 +91,6 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
                 deviceInfo.setDeviceDetails(deviceDetails);
                 deviceInfo.setLastLogged(LocalDate.now());
                 deviceInfoRepository.save(deviceInfo);
-                checkStatistics();
-                activeUsers();
                 return deviceInfo;
             }
         } else {
@@ -126,7 +120,16 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
         }
     }
 
-    private void activeUsers(){
+    private void activeUsers(String username){
+        List<DeviceInfo> deviceInfos = deviceInfoRepository.findByUsername(username);
+        for (DeviceInfo deviceInfo : deviceInfos){
+            if (deviceInfo.getLastLogged().equals(LocalDate.now())){
+                //brake from function if user was logged in this day
+                return;
+            }
+        }
+        //if user wasn't logged in increment
+        checkStatistics();
         Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(LocalDate.now());
         if (optionalStatistics.isPresent()){
             Statistics statistics = optionalStatistics.get();

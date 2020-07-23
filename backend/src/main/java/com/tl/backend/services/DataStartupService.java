@@ -69,19 +69,17 @@ public class DataStartupService {
         //ROLE
         Role admin = new Role();
         admin.setName(ERole.ROLE_ADMIN);
+        Role userR = new Role();
+        userR.setName(ERole.ROLE_USER);
+        roleRepository.save(userR);
         if (roleRepository.findByName(ERole.ROLE_ADMIN).isEmpty()){
             roleRepository.save(admin);
-            Role userR = new Role();
-            userR.setName(ERole.ROLE_USER);
+        }
+        if (roleRepository.findByName(ERole.ROLE_USER).isEmpty()){
             roleRepository.save(userR);
         }
 
-        //stats
-        if (statisticsRepository.findByDay(LocalDate.now()).isEmpty()){
-            Statistics statistics = new Statistics();
-            statistics.setDay(LocalDate.now());
-            statisticsRepository.save(statistics);
-        }
+        //stats are created when needed!
 
         //admin
         User kuba = new User();
