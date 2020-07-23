@@ -71,7 +71,6 @@ public class DataStartupService {
         admin.setName(ERole.ROLE_ADMIN);
         Role userR = new Role();
         userR.setName(ERole.ROLE_USER);
-        roleRepository.save(userR);
         if (roleRepository.findByName(ERole.ROLE_ADMIN).isEmpty()){
             roleRepository.save(admin);
         }
