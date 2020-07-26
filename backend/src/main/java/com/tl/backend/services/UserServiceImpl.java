@@ -4,13 +4,12 @@ import com.stripe.exception.CardException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Customer;
 import com.stripe.model.PaymentMethod;
+import com.stripe.model.PaymentMethodCollection;
 import com.stripe.model.Subscription;
 import com.stripe.param.PaymentMethodAttachParams;
 import com.tl.backend.config.AppProperties;
-import com.tl.backend.models.DeviceInfo;
-import com.tl.backend.models.InteractionEvent;
-import com.tl.backend.models.Timeline;
-import com.tl.backend.models.User;
+import com.tl.backend.models.*;
+import com.tl.backend.repositories.StatisticsRepository;
 import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
 import com.tl.backend.request.SubscriptionRequest;
@@ -34,8 +33,10 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.Period;
 import java.time.ZoneOffset;
 import java.util.*;
 
@@ -53,10 +54,14 @@ public class UserServiceImpl implements UserService {
     private final JavaMailSender emailSender;
     private final AppProperties appProperties;
     private final DeviceInfoServiceImpl deviceInfoService;
+    private final StatisticsServiceImpl statisticsService;
+    private final StatisticsRepository statisticsRepository;
 
     @Autowired
-    public UserServiceImpl(DeviceInfoServiceImpl deviceInfoService, AppProperties appProperties, JavaMailSender emailSender, TimelineRepository timelineRepository, MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder, UserRepository userRepository, AuthenticationManager authenticationManager){
+    public UserServiceImpl(StatisticsRepository statisticsRepository, StatisticsServiceImpl statisticsService, DeviceInfoServiceImpl deviceInfoService, AppProperties appProperties, JavaMailSender emailSender, TimelineRepository timelineRepository, MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder, UserRepository userRepository, AuthenticationManager authenticationManager){
         this.userRepository = userRepository;
+        this.statisticsRepository = statisticsRepository;
+        this.statisticsService = statisticsService;
         this.deviceInfoService = deviceInfoService;
         this.appProperties = appProperties;
         this.emailSender = emailSender;
@@ -226,12 +231,20 @@ public class UserServiceImpl implements UserService {
             customer.update(customerParams);
 
             Map<String, Object> item = new HashMap<>();
-            item.put("price", "price_1GvluCG6mQST9KMbBo0u3t74");
             Map<String, Object> items = new HashMap<>();
             items.put("0", item);
             Map<String, Object> params = new HashMap<>();
             params.put("customer", user.getStripeID());
             params.put("items", items);
+            item.put("price", "price_1H98ExG6mQST9KMbGGPrtVdN");
+            //check if there is active subscription
+            if (user.getSubscriptionEnd() != null){
+                if (user.getSubscriptionEnd().compareTo(LocalDate.now()) > 0){
+                    LocalDate nextPayment = user.getSubscriptionEnd().plusDays(1);
+                    Timestamp timestamp = Timestamp.valueOf(nextPayment.atStartOfDay());
+                    params.put("trial_end", timestamp);
+                }
+            }
 
             List<String> expandList = new ArrayList<>();
             expandList.add("latest_invoice.payment_intent");
@@ -269,13 +282,13 @@ public class UserServiceImpl implements UserService {
             //user has subscription
             if (user.getSubscriptionEnd() != null){
                 //if subscription ended
-                if (user.getSubscriptionEnd().compareTo(LocalDate.now()) < 0){
+                if (user.getSubscriptionEnd().compareTo(LocalDate.now()) <= 0){
                     //check again if subscription active
                     if (user.getSubscriptionID() != null) {
                         try {
                             Subscription subscription = Subscription.retrieve(user.getSubscriptionID());
                             //subscription active
-                            if (subscription.getStatus().equals("active")) {
+                            if (subscription.getStatus().equals("active") || subscription.getStatus().equals("trialing")) {
                                 Instant instant = Instant.ofEpochSecond(subscription.getCurrentPeriodEnd());
                                 user.setSubscriptionEnd(LocalDate.ofInstant(instant, ZoneOffset.UTC));
                             } else {
@@ -306,6 +319,15 @@ public class UserServiceImpl implements UserService {
         if (optionalUser.isPresent()){
             User user = optionalUser.get();
             Subscription subscription = Subscription.retrieve(user.getSubscriptionID());
+            //delete cards
+            Map<String, Object> params = new HashMap<>();
+            params.put("customer", user.getStripeID());
+            params.put("type", "card");
+            PaymentMethodCollection paymentMethods = PaymentMethod.list(params);
+            for (PaymentMethod paymentMethod : paymentMethods.getData()){
+                paymentMethod.detach();
+            }
+
             Subscription deletedSubscription = subscription.cancel();
             user.setSubscriptionID(null);
             userRepository.save(user);
@@ -411,6 +433,13 @@ public class UserServiceImpl implements UserService {
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isPresent()){
             User user = optionalUser.get();
+            statisticsService.checkStatistics();
+            Optional<Statistics> optionalStatistics = statisticsRepository.findByDay(LocalDate.now());
+            if (optionalStatistics.isPresent()){
+                Statistics statistics = optionalStatistics.get();
+                statistics.setProfileViews(statistics.getProfileViews() + 1);
+                statisticsRepository.save(statistics);
+            }
             Map<LocalDate, Map<String, Long>> profileViews = user.getProfileViews();
             DeviceInfo deviceInfo = deviceInfoService.createInfo(request, null);
 

@@ -18,10 +18,11 @@ public class Statistics {
 
     @Id
     private String id;
-    private long totalTimelinesViews = 0;
-    private long mainPageViews = 0;
-    private long numberOfUsers = 0;
-    private long activeUsers = 0;
+    private Long totalTimelinesViews = 0L;
+    private Long mainPageViews = 0L;
+    private Long numberOfUsers = 0L;
+    private Long activeUsers = 0L;
+    private Long profileViews = 0L;
     private LocalDate day;
     private Map<String, Long> devices = new HashMap<>();
 }
