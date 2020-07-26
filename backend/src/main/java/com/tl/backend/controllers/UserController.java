@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.Optional;
@@ -94,11 +95,17 @@ public class UserController {
     }
 
     @GetMapping(value = "/public/{username}")
-    public ResponseEntity<?> checkUser(@PathVariable String username){
+    public ResponseEntity<?> checkUser(HttpServletRequest request, @PathVariable String username, @RequestParam(required = false) Boolean profile){
         User user = userService.checkUser(username);
         if (user == null){
             return new ResponseEntity<>(null, HttpStatus.OK);
         } else {
+            //profile view
+            if (profile != null){
+                if (profile){
+                    userService.profileView(username, request);
+                }
+            }
             return new ResponseEntity<>(userMapper.userResponse(user), HttpStatus.OK);
         }
     }

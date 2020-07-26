@@ -144,63 +144,48 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
     }
 
     @Override
-    public List<StatResponse> getLocations(String timelineId) {
-        Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
-        if (optionalTimeline.isPresent()){
-            Timeline timeline = optionalTimeline.get();
-
-            Map<LocalDate, Map<String, Long>> views = timeline.getViewsDetails();
-            Map<String, Long> locations = new HashMap<>();
-            for (Map<String, Long> devicesInDay : views.values()){
-                for (String deviceId : devicesInDay.keySet()){
-                    Optional<DeviceInfo> optionalDeviceInfo = deviceInfoRepository.findById(deviceId);
-                    if (optionalDeviceInfo.isPresent()){
-                        DeviceInfo deviceInfo = optionalDeviceInfo.get();
-                        if (!locations.containsKey(deviceInfo.getLocation())){
-                            //location doesn't exists
-                            locations.put(deviceInfo.getLocation(), devicesInDay.get(deviceId));
-                        } else {
-                            //location exists
-                            locations.put(deviceInfo.getLocation(), locations.get(deviceInfo.getLocation()) + devicesInDay.get(deviceId));
-                        }
+    public List<StatResponse> getLocations(Map<LocalDate, Map<String, Long>> views) {
+        Map<String, Long> locations = new HashMap<>();
+        for (Map<String, Long> devicesInDay : views.values()){
+            for (String deviceId : devicesInDay.keySet()){
+                Optional<DeviceInfo> optionalDeviceInfo = deviceInfoRepository.findById(deviceId);
+                if (optionalDeviceInfo.isPresent()){
+                    DeviceInfo deviceInfo = optionalDeviceInfo.get();
+                    if (!locations.containsKey(deviceInfo.getLocation())){
+                        //location doesn't exists
+                        locations.put(deviceInfo.getLocation(), devicesInDay.get(deviceId));
+                    } else {
+                        //location exists
+                        locations.put(deviceInfo.getLocation(), locations.get(deviceInfo.getLocation()) + devicesInDay.get(deviceId));
                     }
                 }
             }
-            List<StatResponse> statResponses = new ArrayList<>();
-            for (String location : locations.keySet()){
-                StatResponse statResponse = new StatResponse();
-                statResponse.setLocation(location);
-                statResponse.setNumber(locations.get(location));
-                statResponses.add(statResponse);
-            }
-            return statResponses;
         }
-        return null;
+        List<StatResponse> statResponses = new ArrayList<>();
+        for (String location : locations.keySet()){
+            StatResponse statResponse = new StatResponse();
+            statResponse.setLocation(location);
+            statResponse.setNumber(locations.get(location));
+            statResponses.add(statResponse);
+        }
+        return statResponses;
     }
 
     @Override
-    public List<StatResponse> getViews(String timelineId) {
-        Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
-        if (optionalTimeline.isPresent()){
-            Timeline timeline = optionalTimeline.get();
-
-            //there can be missing days in case of low views number!
-            Map<LocalDate, Map<String, Long>> views = timeline.getViewsDetails();
-            List<StatResponse> statResponses = new ArrayList<>();
-            for (LocalDate day : views.keySet()){
-                StatResponse statResponse = new StatResponse();
-                statResponse.setDate(day);
-                Map<String, Long> devicesInDay = views.get(day);
-                long viewsInDay = 0L;
-                for (Long nuberOfViews : devicesInDay.values()){
-                    viewsInDay += nuberOfViews;
-                }
-                statResponse.setNumber(viewsInDay);
-                statResponses.add(statResponse);
+    public List<StatResponse> getViews(Map<LocalDate, Map<String, Long>> views) {
+        List<StatResponse> statResponses = new ArrayList<>();
+        for (LocalDate day : views.keySet()){
+            StatResponse statResponse = new StatResponse();
+            statResponse.setDate(day);
+            Map<String, Long> devicesInDay = views.get(day);
+            long viewsInDay = 0L;
+            for (Long nuberOfViews : devicesInDay.values()){
+                viewsInDay += nuberOfViews;
             }
-            return statResponses;
+            statResponse.setNumber(viewsInDay);
+            statResponses.add(statResponse);
         }
-        return null;
+        return statResponses;
     }
 
     private DeviceInfo findExistingDeviceNoUser(String deviceDetails, String location){

@@ -6,6 +6,7 @@ import com.tl.backend.models.User;
 import com.tl.backend.request.SubscriptionRequest;
 import org.springframework.http.ResponseEntity;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface UserService {
@@ -39,4 +40,6 @@ public interface UserService {
     void unBlockUser(String username);
 
     void disableTimelines(String username);
+
+    void profileView(String username, HttpServletRequest request);
 }

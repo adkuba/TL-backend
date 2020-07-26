@@ -10,6 +10,6 @@ import java.time.LocalDate;
 public class StatResponse {
 
     private LocalDate date;
-    private String location;
-    private Long number;
+    private String location = "UNKNOWN";
+    private Long number = 0L;
 }

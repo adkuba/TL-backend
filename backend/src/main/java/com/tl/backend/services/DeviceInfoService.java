@@ -6,7 +6,9 @@ import com.tl.backend.response.StatResponse;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public interface DeviceInfoService {
 
@@ -14,7 +16,7 @@ public interface DeviceInfoService {
 
     List<DeviceInfo> getAll();
 
-    List<StatResponse> getLocations(String timelineId);
+    List<StatResponse> getLocations(Map<LocalDate, Map<String, Long>> views);
 
-    List<StatResponse> getViews(String timelineId);
+    List<StatResponse> getViews(Map<LocalDate, Map<String, Long>> views);
 }

@@ -22,4 +22,5 @@ public class UserResponse {
     private String subscriptionID;
     private String card;
     private Boolean blocked;
+    private Long profileViewsNumber;
 }

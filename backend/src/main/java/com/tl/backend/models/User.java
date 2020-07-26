@@ -21,7 +21,7 @@ public class User {
     @Id
     private String id;
     private String username;
-    private String fullName = "";
+    private String fullName = "New User";
     private List<InteractionEvent> followers = new ArrayList<>();
     private String subscriptionID;
     private Boolean blocked = false;
@@ -40,6 +40,18 @@ public class User {
     private LocalDate subscriptionEnd;
     private String card;
     private List<InteractionEvent> myViews = new ArrayList<>();
+    private Map<LocalDate, Map<String, Long>> profileViews = new HashMap<>();
+    private Long profileViewsNumber = 0L;
+
+    public void profileViews(){
+        long count = 0;
+        for (Map<String, Long> devicesInDay : profileViews.values()){
+            for (Long views : devicesInDay.values()){
+                count += views;
+            }
+        }
+        profileViewsNumber = count;
+    }
 
     public User(String username, String email, String password) {
         this.username = username;

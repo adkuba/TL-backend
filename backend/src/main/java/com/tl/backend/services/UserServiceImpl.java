@@ -7,6 +7,7 @@ import com.stripe.model.PaymentMethod;
 import com.stripe.model.Subscription;
 import com.stripe.param.PaymentMethodAttachParams;
 import com.tl.backend.config.AppProperties;
+import com.tl.backend.models.DeviceInfo;
 import com.tl.backend.models.InteractionEvent;
 import com.tl.backend.models.Timeline;
 import com.tl.backend.models.User;
@@ -31,6 +32,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -50,10 +52,12 @@ public class UserServiceImpl implements UserService {
     private final MongoTemplate mongoTemplate;
     private final JavaMailSender emailSender;
     private final AppProperties appProperties;
+    private final DeviceInfoServiceImpl deviceInfoService;
 
     @Autowired
-    public UserServiceImpl(AppProperties appProperties, JavaMailSender emailSender, TimelineRepository timelineRepository, MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder, UserRepository userRepository, AuthenticationManager authenticationManager){
+    public UserServiceImpl(DeviceInfoServiceImpl deviceInfoService, AppProperties appProperties, JavaMailSender emailSender, TimelineRepository timelineRepository, MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder, UserRepository userRepository, AuthenticationManager authenticationManager){
         this.userRepository = userRepository;
+        this.deviceInfoService = deviceInfoService;
         this.appProperties = appProperties;
         this.emailSender = emailSender;
         this.timelineRepository = timelineRepository;
@@ -399,6 +403,37 @@ public class UserServiceImpl implements UserService {
                 timeline.setPremium(false);
                 timelineRepository.save(timeline);
             }
+        }
+    }
+
+    @Override
+    public void profileView(String username, HttpServletRequest request) {
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+        if (optionalUser.isPresent()){
+            User user = optionalUser.get();
+            Map<LocalDate, Map<String, Long>> profileViews = user.getProfileViews();
+            DeviceInfo deviceInfo = deviceInfoService.createInfo(request, null);
+
+            if (profileViews.containsKey(LocalDate.now())){
+                //has day
+                Map<String, Long> devicesInDay = profileViews.get(LocalDate.now());
+                if (devicesInDay.containsKey(deviceInfo.getId())){
+                    //has device
+                    devicesInDay.put(deviceInfo.getId(), devicesInDay.get(deviceInfo.getId()) + 1);
+                } else {
+                    //no device
+                    devicesInDay.put(deviceInfo.getId(), 1L);
+                }
+                profileViews.put(LocalDate.now(), devicesInDay);
+            } else {
+                //first in day
+                Map<String, Long> devicesInDay = new HashMap<>();
+                devicesInDay.put(deviceInfo.getId(), 1L);
+                profileViews.put(LocalDate.now(), devicesInDay);
+            }
+            user.setProfileViews(profileViews);
+            user.profileViews();
+            userRepository.save(user);
         }
     }
 
