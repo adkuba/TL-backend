@@ -172,6 +172,18 @@ public class UserServiceImpl implements UserService {
                     }
                 }
             }
+            //delete timeline likes
+            List<String> likes = user.getLikes();
+            for (String like : likes){
+                Optional<Timeline> optionalTimeline = timelineRepository.findById(like);
+                if (optionalTimeline.isPresent()){
+                    Timeline timeline = optionalTimeline.get();
+                    List<InteractionEvent> likeEvents = timeline.getLikes();
+                    likeEvents.removeIf(obj -> obj.getUserId().equals(username));
+                    timeline.setLikes(likeEvents);
+                    timelineRepository.save(timeline);
+                }
+            }
 
             userRepository.delete(user);
         }
