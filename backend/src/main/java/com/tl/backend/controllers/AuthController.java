@@ -100,6 +100,10 @@ public class AuthController {
         cookie = new Cookie(name, URLEncoder.encode(value, StandardCharsets.UTF_8));
         cookie.setDomain(appProperties.getDomain());
         cookie.setHttpOnly(httpOnly);
+
+        //for production https
+        cookie.setSecure(true);
+
         cookie.setMaxAge(60*60*24*30);
         cookie.setPath("/");
 

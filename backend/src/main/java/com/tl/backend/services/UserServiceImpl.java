@@ -39,6 +39,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.limit;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.sort;
@@ -79,9 +80,9 @@ public class UserServiceImpl implements UserService {
             User user = optionalUser.get();
             User follower = optionalFollowerUser.get();
             for (InteractionEvent interactionEvent : user.getFollowers()) {
-                //already following need to unfollow
                 if (interactionEvent.getUserId() != null){
                     if (interactionEvent.getUserId().equals(followerUsername)){
+                        //already following need to unfollow
                         //deleting from user
                         List<InteractionEvent> followers = user.getFollowers();
                         followers.remove(interactionEvent);
@@ -128,14 +129,51 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<?> deleteByUsername(String username) {
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isPresent()){
+            User user = optionalUser.get();
             try {
-                Customer customer = Customer.retrieve(optionalUser.get().getStripeID());
+                Customer customer = Customer.retrieve(user.getStripeID());
                 customer.delete();
 
             } catch (StripeException e) {
                 return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
             }
-            userRepository.delete(optionalUser.get());
+            //delete following
+            List<InteractionEvent> followers = user.getFollowers();
+            for (InteractionEvent event : followers){
+                //im following somebody
+                if (event.getFollow() != null){
+                    Optional<User> optionalUserFollow = userRepository.findByUsername(event.getFollow());
+                    if (optionalUserFollow.isPresent()){
+                        User followUser = optionalUserFollow.get();
+                        List<InteractionEvent> userFollowing = followUser.getFollowers();
+                        List<InteractionEvent> userFollowingNotNull = userFollowing.stream().filter(obj -> obj.getUserId() != null).collect(Collectors.toList());
+                        for (InteractionEvent userFollowingObj : userFollowingNotNull){
+                            if (userFollowingObj.getUserId().equals(user.getUsername())){
+                                userFollowing.remove(userFollowingObj);
+                            }
+                        }
+                        followUser.setFollowers(userFollowing);
+                        userRepository.save(followUser);
+                    }
+                } else {
+                    //somebody is following me
+                    Optional<User> optionalUserFollow = userRepository.findByUsername(event.getUserId());
+                    if (optionalUserFollow.isPresent()){
+                        User followUser = optionalUserFollow.get();
+                        List<InteractionEvent> userFollowing = followUser.getFollowers();
+                        List<InteractionEvent> userFollowingNotNull = userFollowing.stream().filter(obj -> obj.getFollow() != null).collect(Collectors.toList());
+                        for (InteractionEvent userFollowingNotNullObj : userFollowingNotNull){
+                            if (userFollowingNotNullObj.getFollow().equals(user.getUsername())){
+                                userFollowing.remove(userFollowingNotNullObj);
+                            }
+                        }
+                        followUser.setFollowers(userFollowing);
+                        userRepository.save(followUser);
+                    }
+                }
+            }
+
+            userRepository.delete(user);
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -236,11 +274,11 @@ public class UserServiceImpl implements UserService {
             Map<String, Object> params = new HashMap<>();
             params.put("customer", user.getStripeID());
             params.put("items", items);
-            item.put("price", "price_1H98ExG6mQST9KMbGGPrtVdN");
+            item.put("price", "price_1H9QHbG6mQST9KMb9bgzDj1Y");
             //check if there is active subscription
             if (user.getSubscriptionEnd() != null){
-                if (user.getSubscriptionEnd().compareTo(LocalDate.now()) > 0){
-                    LocalDate nextPayment = user.getSubscriptionEnd().plusDays(1);
+                if (user.getSubscriptionEnd().compareTo(LocalDate.now()) >= 0){
+                    LocalDate nextPayment = user.getSubscriptionEnd();
                     Timestamp timestamp = Timestamp.valueOf(nextPayment.atStartOfDay());
                     params.put("trial_end", timestamp);
                 }
@@ -282,7 +320,7 @@ public class UserServiceImpl implements UserService {
             //user has subscription
             if (user.getSubscriptionEnd() != null){
                 //if subscription ended
-                if (user.getSubscriptionEnd().compareTo(LocalDate.now()) <= 0){
+                if (user.getSubscriptionEnd().compareTo(LocalDate.now()) < 0){
                     //check again if subscription active
                     if (user.getSubscriptionID() != null) {
                         try {
@@ -291,6 +329,7 @@ public class UserServiceImpl implements UserService {
                             if (subscription.getStatus().equals("active") || subscription.getStatus().equals("trialing")) {
                                 Instant instant = Instant.ofEpochSecond(subscription.getCurrentPeriodEnd());
                                 user.setSubscriptionEnd(LocalDate.ofInstant(instant, ZoneOffset.UTC));
+                                activateTimelines(username);
                             } else {
                                 //subscription not active
                                 user.setSubscriptionID(null);
@@ -308,6 +347,8 @@ public class UserServiceImpl implements UserService {
                         disableTimelines(username);
                         userRepository.save(user);
                     }
+                } else {
+                    activateTimelines(username);
                 }
             }
         }

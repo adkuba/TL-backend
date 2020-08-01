@@ -72,24 +72,22 @@ public class TimelineServiceImpl implements TimelineService {
         optionalTimeline = timelineRepository.findById(id);
         if (optionalTimeline.isPresent()){
             Timeline timeline = optionalTimeline.get();
-            if (timeline.getActive()){
-                if (username != null){
-                    Optional<User> optionalUser = userRepository.findByUsername(username);
-                    if (optionalUser.isPresent()){
-                        User user = optionalUser.get();
-                        List<InteractionEvent> myViews = user.getMyViews();
-                        InteractionEvent view = new InteractionEvent();
-                        view.setDate(LocalDate.now());
-                        view.setTimelineId(id);
-                        if (myViews.stream().noneMatch(o -> o.getTimelineId().equals(id))){
-                            myViews.add(view);
-                            user.setMyViews(myViews);
-                            userRepository.save(user);
-                        }
+            if (username != null){
+                Optional<User> optionalUser = userRepository.findByUsername(username);
+                if (optionalUser.isPresent()){
+                    User user = optionalUser.get();
+                    List<InteractionEvent> myViews = user.getMyViews();
+                    InteractionEvent view = new InteractionEvent();
+                    view.setDate(LocalDate.now());
+                    view.setTimelineId(id);
+                    if (myViews.stream().noneMatch(o -> o.getTimelineId().equals(id))){
+                        myViews.add(view);
+                        user.setMyViews(myViews);
+                        userRepository.save(user);
                     }
                 }
-                return timeline;
             }
+            return timeline;
         }
         return null;
     }
@@ -112,6 +110,20 @@ public class TimelineServiceImpl implements TimelineService {
             Timeline timeline = optionalTimeline.get();
             if (delPictures){
                 deletePictures(timeline.getPictures());
+                //edit timeline doesn't delete pictures
+                //so if delPictures=true timeline is permanently deleted
+                //need to delete likes
+                List<InteractionEvent> likes = timeline.getLikes();
+                for (InteractionEvent like : likes){
+                    Optional<User> optionalUser = userRepository.findByUsername(like.getUserId());
+                    if (optionalUser.isPresent()){
+                        User user = optionalUser.get();
+                        List<String> userLikes = user.getLikes();
+                        userLikes.remove(timeline.getId());
+                        user.setLikes(userLikes);
+                        userRepository.save(user);
+                    }
+                }
             }
 
             List<Event> events = eventRepository.findAllByTimelineId(timeline.getId());
