@@ -57,10 +57,12 @@ public class UserServiceImpl implements UserService {
     private final DeviceInfoServiceImpl deviceInfoService;
     private final StatisticsServiceImpl statisticsService;
     private final StatisticsRepository statisticsRepository;
+    private final NotificationServiceImpl notificationService;
 
     @Autowired
-    public UserServiceImpl(StatisticsRepository statisticsRepository, StatisticsServiceImpl statisticsService, DeviceInfoServiceImpl deviceInfoService, AppProperties appProperties, JavaMailSender emailSender, TimelineRepository timelineRepository, MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder, UserRepository userRepository, AuthenticationManager authenticationManager){
+    public UserServiceImpl(NotificationServiceImpl notificationService, StatisticsRepository statisticsRepository, StatisticsServiceImpl statisticsService, DeviceInfoServiceImpl deviceInfoService, AppProperties appProperties, JavaMailSender emailSender, TimelineRepository timelineRepository, MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder, UserRepository userRepository, AuthenticationManager authenticationManager){
         this.userRepository = userRepository;
+        this.notificationService = notificationService;
         this.statisticsRepository = statisticsRepository;
         this.statisticsService = statisticsService;
         this.deviceInfoService = deviceInfoService;
@@ -108,6 +110,7 @@ public class UserServiceImpl implements UserService {
             followers.add(event);
             user.setFollowers(followers);
             userRepository.save(user);
+            notificationService.addNotification(user.getUsername(), follower.getUsername(), "Is now following you.");
             //follower
             followers = follower.getFollowers();
             event = new InteractionEvent();

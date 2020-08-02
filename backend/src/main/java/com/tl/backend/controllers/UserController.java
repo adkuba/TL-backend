@@ -2,9 +2,11 @@ package com.tl.backend.controllers;
 
 import com.stripe.exception.StripeException;
 import com.tl.backend.mappers.UserMapper;
+import com.tl.backend.models.Notification;
 import com.tl.backend.models.User;
 import com.tl.backend.request.PasswordResetRequest;
 import com.tl.backend.request.SubscriptionRequest;
+import com.tl.backend.services.NotificationServiceImpl;
 import com.tl.backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,10 +26,12 @@ public class UserController {
 
     private final UserService userService;
     private final UserMapper userMapper;
+    private final NotificationServiceImpl notificationService;
 
     @Autowired
-    public UserController(UserMapper userMapper, UserService userService){
+    public UserController(NotificationServiceImpl notificationService, UserMapper userMapper, UserService userService){
         this.userMapper = userMapper;
+        this.notificationService = notificationService;
         this.userService = userService;
     }
 
@@ -80,6 +84,13 @@ public class UserController {
     public ResponseEntity<?> checkSubscription(Authentication authentication) throws StripeException {
         userService.checkSubscription(authentication.getName());
         return null;
+    }
+
+    @GetMapping(value = "/notifications")
+    public ResponseEntity<?> getNotifications(Authentication authentication){
+        Notification notification = notificationService.getNotification(authentication.getName());
+        notificationService.markRead(authentication.getName());
+        return new ResponseEntity<>(notification, HttpStatus.OK);
     }
 
     @PostMapping(value = "/block")

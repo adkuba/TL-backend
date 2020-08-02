@@ -34,6 +34,7 @@ public class User {
     @NotNull
     @JsonIgnore
     private String password;
+    private Notification notification;
     @DBRef
     private Set<Role> roles = new HashSet<>();
     private String stripeID;

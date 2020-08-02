@@ -66,10 +66,12 @@ public class AuthController {
     private final JavaMailSender emailSender;
     private final DeviceInfoServiceImpl deviceInfoService;
     private final StatisticsServiceImpl statisticsService;
+    private final NotificationServiceImpl notificationService;
 
     @Autowired
-    public AuthController(StatisticsServiceImpl statisticsService, DeviceInfoServiceImpl deviceInfoService, JavaMailSender emailSender, UserService userService, CaptchaService captchaService, StatisticsRepository statisticsRepository, UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
+    public AuthController(NotificationServiceImpl notificationService, StatisticsServiceImpl statisticsService, DeviceInfoServiceImpl deviceInfoService, JavaMailSender emailSender, UserService userService, CaptchaService captchaService, StatisticsRepository statisticsRepository, UserMapper userMapper, AppProperties appProperties, AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils){
         this.appProperties = appProperties;
+        this.notificationService = notificationService;
         this.statisticsService = statisticsService;
         this.deviceInfoService = deviceInfoService;
         this.emailSender = emailSender;
@@ -234,6 +236,7 @@ public class AuthController {
 
         user.setRoles(roles);
         userRepository.save(user);
+        notificationService.createNotification(user.getUsername());
 
         //main stats
         statisticsService.checkStatistics();

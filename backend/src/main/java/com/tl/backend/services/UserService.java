@@ -2,6 +2,7 @@ package com.tl.backend.services;
 
 import com.stripe.exception.StripeException;
 import com.tl.backend.models.InteractionEvent;
+import com.tl.backend.models.Notification;
 import com.tl.backend.models.User;
 import com.tl.backend.request.SubscriptionRequest;
 import org.springframework.http.ResponseEntity;

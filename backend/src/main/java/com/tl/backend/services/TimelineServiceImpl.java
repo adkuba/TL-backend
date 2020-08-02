@@ -51,10 +51,12 @@ public class TimelineServiceImpl implements TimelineService {
     private final UserServiceImpl userService;
     private final JavaMailSender emailSender;
     private final AppProperties appProperties;
+    private final NotificationServiceImpl notificationService;
 
     @Autowired
-    public TimelineServiceImpl(AppProperties appProperties, JavaMailSender emailSender, UserServiceImpl userService, UserRepository userRepository, FileResourceRepository fileResourceRepository, TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate, EventRepository eventRepository){
+    public TimelineServiceImpl(NotificationServiceImpl notificationService, AppProperties appProperties, JavaMailSender emailSender, UserServiceImpl userService, UserRepository userRepository, FileResourceRepository fileResourceRepository, TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate, EventRepository eventRepository){
         this.timelineRepository = timelineRepository;
+        this.notificationService = notificationService;
         this.appProperties = appProperties;
         this.emailSender = emailSender;
         this.userService = userService;
@@ -411,6 +413,7 @@ public class TimelineServiceImpl implements TimelineService {
                 likes.add(like);
                 timeline.setLikes(likes);
                 timelineRepository.save(timeline);
+                notificationService.addNotification(timeline.getUser().getUsername(), username, "Likes " + timelineId);
 
                 List<String> likesUser = user.getLikes();
                 likesUser.add(timelineId);
