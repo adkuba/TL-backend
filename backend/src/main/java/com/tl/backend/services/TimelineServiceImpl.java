@@ -313,6 +313,23 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     @Override
+    public void makeActive(List<String> active, String username) {
+        List<Timeline> userTimelines = getUserTimelines(username);
+        for (Timeline timeline : userTimelines){
+            timeline.setActive(false);
+            timelineRepository.save(timeline);
+        }
+        for (String timelineId : active){
+            Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineId);
+            if (optionalTimeline.isPresent()){
+                Timeline timeline = optionalTimeline.get();
+                timeline.setActive(true);
+                timelineRepository.save(timeline);
+            }
+        }
+    }
+
+    @Override
     public List<Timeline> getReported() {
         MatchOperation reported = Aggregation.match(Criteria.where("reported").is(true));
         Aggregation aggregation = Aggregation.newAggregation(reported);

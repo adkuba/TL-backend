@@ -24,17 +24,18 @@ public class LoginNotificationConfig {
     public DatabaseReader databaseReader() throws IOException {
         //uncomment for google cloud
         ClassLoader cl = this.getClass().getClassLoader();
-        InputStream inputStream = cl.getResourceAsStream("classpath:maxmind/GeoLite2-Country.mmdb");
+        InputStream database = cl.getResourceAsStream("classpath:maxmind/GeoLite2-Country.mmdb");
         //comment for google cloud
         //File database = ResourceUtils.getFile("classpath:maxmind/GeoLite2-Country.mmdb");
-        return new DatabaseReader.Builder(inputStream).build();
+        return new DatabaseReader.Builder(database).build();
     }
 
     @Bean(name = "gstorage")
     public Storage gStorage() throws IOException {
-        //comment for google cloud!
+        //uncomment for localhost
         //File file = ResourceUtils.getFile("classpath:google/authentication.json");
         //Credentials credentials = GoogleCredentials.fromStream(new FileInputStream(file));
+        //uncomment for google
         ClassLoader cl = this.getClass().getClassLoader();
         InputStream inputStream = cl.getResourceAsStream("classpath:google/authentication.json");
         assert inputStream != null;

@@ -95,6 +95,15 @@ public class TimelineController {
         return new ResponseEntity<>(likes, HttpStatus.OK);
     }
 
+    @PostMapping(value = "/make-active")
+    public ResponseEntity<?> makeActive(Authentication authentication, @RequestBody List<String> active){
+        if (active.size() == 2){
+            timelineService.makeActive(active, authentication.getName());
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
     @PostMapping(value = "/{id}/dislike")
     public ResponseEntity<?> dislikeTiemline(Authentication authentication, @PathVariable String id){
         List<String> likes = timelineService.dislikeTimeline(id, authentication.getName());

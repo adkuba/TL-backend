@@ -42,6 +42,8 @@ public interface TimelineService {
 
     void deleteUserTimelines(String username);
 
+    void makeActive(List<String> active, String username);
+
     List<Timeline> getReported();
 
     List<Timeline> getAllUserTimelines();
