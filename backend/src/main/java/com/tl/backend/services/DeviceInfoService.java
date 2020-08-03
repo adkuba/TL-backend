@@ -19,4 +19,6 @@ public interface DeviceInfoService {
     List<StatResponse> getLocations(Map<LocalDate, Map<String, Long>> views);
 
     List<StatResponse> getViews(Map<LocalDate, Map<String, Long>> views);
+
+    void deleteByUsername(String username);
 }

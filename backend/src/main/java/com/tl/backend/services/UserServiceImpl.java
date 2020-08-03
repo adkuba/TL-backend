@@ -187,6 +187,8 @@ public class UserServiceImpl implements UserService {
                     timelineRepository.save(timeline);
                 }
             }
+            //delete deviceInfo
+            deviceInfoService.deleteByUsername(user.getUsername());
 
             userRepository.delete(user);
         }

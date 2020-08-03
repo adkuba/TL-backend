@@ -37,14 +37,12 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
     private final JavaMailSender emailSender;
     private final UserRepository userRepository;
     private final AppProperties appProperties;
-    private final TimelineRepository timelineRepository;
     private final StatisticsRepository statisticsRepository;
 
     @Autowired
-    public DeviceInfoServiceImpl(StatisticsRepository statisticsRepository, TimelineRepository timelineRepository, AppProperties appProperties, UserRepository userRepository, JavaMailSender emailSender, Parser parser, DatabaseReader databaseReader, DeviceInfoRepository deviceInfoRepository){
+    public DeviceInfoServiceImpl(StatisticsRepository statisticsRepository, AppProperties appProperties, UserRepository userRepository, JavaMailSender emailSender, Parser parser, DatabaseReader databaseReader, DeviceInfoRepository deviceInfoRepository){
         this.parser = parser;
         this.statisticsRepository = statisticsRepository;
-        this.timelineRepository = timelineRepository;
         this.appProperties = appProperties;
         this.userRepository = userRepository;
         this.emailSender = emailSender;
@@ -186,6 +184,14 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
             statResponses.add(statResponse);
         }
         return statResponses;
+    }
+
+    @Override
+    public void deleteByUsername(String username) {
+        List<DeviceInfo> deviceInfos = deviceInfoRepository.findByUsername(username);
+        for (DeviceInfo deviceInfo : deviceInfos){
+            deviceInfoRepository.delete(deviceInfo);
+        }
     }
 
     private DeviceInfo findExistingDeviceNoUser(String deviceDetails, String location){
