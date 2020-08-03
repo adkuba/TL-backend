@@ -234,6 +234,8 @@ public class AuthController {
         Customer customer = Customer.create(customerParams);
         user.setStripeID(customer.getId());
 
+        user.setFullName(signUpRequest.getFullName());
+
         user.setRoles(roles);
         userRepository.save(user);
         notificationService.createNotification(user.getUsername());
