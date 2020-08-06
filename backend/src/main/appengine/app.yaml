@@ -2,12 +2,12 @@ runtime: java11
 env_variables:
   SPRING_PROFILES_ACTIVE: "prod"
 instance_class: F2
-automatic_scaling:
-  min_instances: 1
-  min_idle_instances: 1
-  max_idle_instances: automatic
-  min_pending_latency: automatic
-  max_pending_latency: automatic
-inbound_services:
-  - warmup
+#automatic_scaling:
+  #min_instances: 1
+  #min_idle_instances: 1
+  #max_idle_instances: automatic
+  #min_pending_latency: automatic
+  #max_pending_latency: automatic
+#inbound_services:
+  #- warmup
 entrypoint: java -noverify -jar backend-1.0-SNAPSHOT.jar

@@ -318,6 +318,7 @@ public class AuthController {
             if (user.getPasswordResetToken().getExpiryDate().compareTo(LocalDate.now()) >= 0){
                 user.setPassword(encoder.encode(passwordResetRequest.getNewPassword()));
                 user.setPasswordResetToken(null);
+                user.setRefreshToken(null);
                 userRepository.save(user);
                 try {
                     MimeMessage message = emailSender.createMimeMessage();
