@@ -1,5 +1,6 @@
 package com.tl.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -19,5 +20,7 @@ public class DeviceInfo {
     private String deviceDetails;
     private String ip;
     private String username;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate lastLogged;
 }

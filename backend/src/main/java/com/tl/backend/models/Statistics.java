@@ -1,5 +1,6 @@
 package com.tl.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -23,6 +24,8 @@ public class Statistics {
     private Long numberOfUsers = 0L;
     private Long activeUsers = 0L;
     private Long profileViews = 0L;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate day;
     private Map<String, Long> devices = new HashMap<>();
 }

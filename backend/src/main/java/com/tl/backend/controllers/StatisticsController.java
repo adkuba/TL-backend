@@ -1,5 +1,6 @@
 package com.tl.backend.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.tl.backend.models.Review;
 import com.tl.backend.models.Statistics;
@@ -95,5 +96,17 @@ public class StatisticsController {
             return new ResponseEntity<>(deviceInfoService.getViews(optionalUser.get().getProfileViews()), HttpStatus.OK);
         }
         return new ResponseEntity<>(null, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/create-backup")
+    public ResponseEntity<?> createBackup() throws IOException {
+        statisticsService.createBackup();
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/restore-backup")
+    public ResponseEntity<?> restoreBackup() throws JsonProcessingException {
+        statisticsService.restoreFromBackup();
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

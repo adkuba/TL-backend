@@ -1,7 +1,12 @@
 package com.tl.backend.models;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
@@ -25,19 +30,23 @@ public class User {
     private List<InteractionEvent> followers = new ArrayList<>();
     private String subscriptionID;
     private Boolean blocked = false;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate creationTime = LocalDate.now();
-    @JsonIgnore
     private String refreshToken;
     private PasswordResetToken passwordResetToken;
     private String email;
     private List<String> likes = new ArrayList<>();
+
     @NotNull
-    @JsonIgnore
     private String password;
     private Notification notification;
+
     @DBRef
     private Set<Role> roles = new HashSet<>();
     private String stripeID;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate subscriptionEnd;
     private String card;
     private List<InteractionEvent> myViews = new ArrayList<>();

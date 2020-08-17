@@ -23,11 +23,20 @@ public class FileServiceImpl implements FileService {
         this.gStorage = gStorage;
     }
 
-    private FileResource createFileResource(MultipartFile file){
+    public FileResource createFileResource(MultipartFile file){
         FileResource fileResource = new FileResource();
         fileResource.setId(UUID.randomUUID().toString());
         fileResource.setMimeType(file.getContentType());
         fileResource.setContentLength(file.getSize());
+        return fileResource;
+    }
+
+    public FileResource createFileResource(String json, String name){
+        FileResource fileResource = new FileResource();
+        fileResource.setId(name);
+        fileResource.setMimeType("application/json");
+        int size = json.getBytes().length;
+        fileResource.setContentLength((long) size);
         return fileResource;
     }
 
@@ -39,14 +48,37 @@ public class FileServiceImpl implements FileService {
         return fileResourceRepository.save(fileResource);
     }
 
+    @SneakyThrows
+    private FileResource setContent(FileResource fileResource, String json){
+        BlobId blobId = BlobId.of("tline-files", fileResource.getId());
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+        gStorage.create(blobInfo, json.getBytes());
+        return fileResourceRepository.save(fileResource);
+    }
+
     @Override
     public FileResource saveFileResource(MultipartFile file) {
         return setContent(createFileResource(file),file);
     }
 
     @Override
+    public FileResource saveFileResource(String json, String name) {
+        return setContent(createFileResource(json, name),json);
+    }
+
+    @Override
     public void deleteFileResource(FileResource resource) {
-        gStorage.delete("tline-files", resource.getId());
-        fileResourceRepository.delete(resource);
+        if (fileResourceRepository.findById(resource.getId()).isPresent()){
+            gStorage.delete("tline-files", resource.getId());
+            fileResourceRepository.delete(resource);
+        }
+    }
+
+    @Override
+    public void deleteFileResource(String resourceId) {
+        if (fileResourceRepository.findById(resourceId).isPresent()){
+            gStorage.delete("tline-files", resourceId);
+            fileResourceRepository.deleteById(resourceId);
+        }
     }
 }

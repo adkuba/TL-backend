@@ -1,5 +1,6 @@
 package com.tl.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.tl.backend.fileHandling.FileResource;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,6 +39,8 @@ public class Timeline {
     private Boolean reported = false;
     private long numberOfReports = 0;
     private long premiumViews = 0;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate creationDate = LocalDate.now();
     private List<InteractionEvent> likes = new ArrayList<>();
 

@@ -1,5 +1,6 @@
 package com.tl.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tl.backend.fileHandling.FileResource;
 import lombok.Data;
@@ -24,5 +25,7 @@ public class Event {
     private String timelineId;
     private String description;
     private List<FileResource> pictures;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
 }

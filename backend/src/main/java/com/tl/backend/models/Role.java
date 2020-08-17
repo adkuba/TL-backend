@@ -11,7 +11,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 public class Role {
     @Id
-    @JsonIgnore
     private String id;
 
     private ERole name;

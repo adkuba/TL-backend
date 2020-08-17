@@ -89,6 +89,11 @@ public class DataStartupService {
         Set<Role> roles = new HashSet<>();
         roles.add(admin);
         kuba.setRoles(roles);
+        Notification notification = new Notification();
+        notification.setRead(true);
+        List<NotificationMessage> notificationMessages = new ArrayList<>();
+        notification.setMessages(notificationMessages);
+        kuba.setNotification(notification);
         if (userRepository.findByUsername("akuba").isEmpty()){
             //STRIPE
             Map<String, Object> customerParams = new HashMap<String, Object>();
