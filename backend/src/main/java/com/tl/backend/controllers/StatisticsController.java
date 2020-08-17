@@ -99,14 +99,23 @@ public class StatisticsController {
     }
 
     @GetMapping(value = "/create-backup")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createBackup() throws IOException {
         statisticsService.createBackup();
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping(value = "/restore-backup")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> restoreBackup() throws JsonProcessingException {
         statisticsService.restoreFromBackup();
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/update-geolocation")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateGeolocation(){
+        deviceInfoService.updateGeolocation();
         return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -21,4 +21,6 @@ public interface DeviceInfoService {
     List<StatResponse> getViews(Map<LocalDate, Map<String, Long>> views);
 
     void deleteByUsername(String username);
+
+    void updateGeolocation();
 }

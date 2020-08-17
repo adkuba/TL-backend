@@ -2,6 +2,7 @@ package com.tl.backend.services;
 
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
+import com.maxmind.geoip2.model.CityResponse;
 import com.maxmind.geoip2.model.CountryResponse;
 import com.tl.backend.config.AppProperties;
 import com.tl.backend.models.*;
@@ -194,6 +195,16 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
         }
     }
 
+    @Override
+    public void updateGeolocation() {
+        List<DeviceInfo> deviceInfos = deviceInfoRepository.findAll();
+        for (DeviceInfo deviceInfo : deviceInfos){
+            deviceInfo.setLocation(getIpLocation(deviceInfo.getIp()));
+            deviceInfo.setDeviceDetails(deviceInfo.getDeviceDetails().replaceAll(".null", ""));
+            deviceInfoRepository.save(deviceInfo);
+        }
+    }
+
     private DeviceInfo findExistingDeviceNoUser(String deviceDetails, String location){
         List<DeviceInfo> knownDevices = deviceInfoRepository.findByLocation(location);
         for (DeviceInfo deviceInfo : knownDevices){
@@ -232,33 +243,66 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
     }
 
     private String getIpLocation(String ip) {
-        String location = "UNKNOWN";
+        String location = "";
         InetAddress ipAddress = null;
-        CountryResponse countryResponse = null;
+        CityResponse cityResponse = null;
 
         try {
             ipAddress = InetAddress.getByName(ip);
-            countryResponse = databaseReader.country(ipAddress);
+            cityResponse = databaseReader.city(ipAddress);
         } catch (IOException | GeoIp2Exception e) {
             //e.printStackTrace();
         }
 
-        if (countryResponse != null && countryResponse.getCountry() != null && countryResponse.getCountry().getName() != null && !countryResponse.getCountry().getName().equals("")) {
-            location = countryResponse.getCountry().getName();
+        if (cityResponse != null){
+            String country = cityResponse.getCountry().getName();
+            if (country != null){
+                location += country;
+            }
+            String state = cityResponse.getLeastSpecificSubdivision().getName();
+            if (state != null){
+                location += " - ";
+                location += state;
+            }
+            String city = cityResponse.getCity().getName();
+            if (city != null){
+                location += " - ";
+                location += city;
+            }
+        } else {
+            location = "Unknown";
         }
         return location;
     }
 
     private String getDeviceDetails(String userAgent) {
-        String deviceDetails = "UNKNOWN";
+        String deviceDetails = "";
 
         Client client = parser.parse(userAgent);
         if (client != null) {
-            deviceDetails = client.userAgent.family
-                    + " " + client.userAgent.major + "."
-                    + client.userAgent.minor + " - "
-                    + client.os.family + " " + client.os.major
-                    + "." + client.os.minor;
+            if (client.userAgent.family != null){
+                deviceDetails += client.userAgent.family;
+            }
+            if (client.userAgent.major != null){
+                deviceDetails += " ";
+                deviceDetails += client.userAgent.major;
+            }
+            if (client.userAgent.minor != null){
+                deviceDetails += ".";
+                deviceDetails += client.userAgent.minor;
+            }
+            if (client.os.family != null){
+                deviceDetails += " - ";
+                deviceDetails += client.os.family;
+            }
+            if (client.os.major != null){
+                deviceDetails += " ";
+                deviceDetails += client.os.major;
+            }
+            if (client.os.minor != null){
+                deviceDetails += ".";
+                deviceDetails += client.os.minor;
+            }
         }
         return deviceDetails;
     }

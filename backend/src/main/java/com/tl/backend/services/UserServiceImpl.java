@@ -318,7 +318,7 @@ public class UserServiceImpl implements UserService {
                 message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
                 message.setSubject("Subscription");
-                message.setContent(appProperties.getMailBeginning() + "Premium " + appProperties.getMailMid() + "You are now a premium user thank you!" + "\n\n You don't recognize this action? Reset password! " + appProperties.getMailEnd(), "text/html");
+                message.setContent(appProperties.getMailBeginning() + "Premium " + appProperties.getMailMid() + "You are now a premium user thank you!\n\n" + "Name: " + subscriptionRequest.getFullName() + "\nPrice: 3$\nCard: " + user.getCard() + "\n\n You don't recognize this action? Reset password! " + appProperties.getMailEnd(), "text/html");
                 emailSender.send(message);
             } catch (MessagingException | UnsupportedEncodingException e) {
                 //e.printStackTrace();
