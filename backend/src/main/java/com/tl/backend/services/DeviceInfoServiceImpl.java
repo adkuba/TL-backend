@@ -245,20 +245,21 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
     private String getIpLocation(String ip) {
         String location = "";
         InetAddress ipAddress = null;
-        CityResponse cityResponse = null;
+        CountryResponse countryResponse = null;
 
         try {
             ipAddress = InetAddress.getByName(ip);
-            cityResponse = databaseReader.city(ipAddress);
+            countryResponse = databaseReader.country(ipAddress);
         } catch (IOException | GeoIp2Exception e) {
             //e.printStackTrace();
         }
 
-        if (cityResponse != null){
-            String country = cityResponse.getCountry().getName();
+        if (countryResponse != null){
+            String country = countryResponse.getCountry().getName();
             if (country != null){
                 location += country;
             }
+            /*
             String state = cityResponse.getLeastSpecificSubdivision().getName();
             if (state != null){
                 location += " - ";
@@ -268,7 +269,7 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
             if (city != null){
                 location += " - ";
                 location += city;
-            }
+            } */
         } else {
             location = "Unknown";
         }

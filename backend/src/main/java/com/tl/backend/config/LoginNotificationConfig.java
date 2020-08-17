@@ -6,10 +6,12 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.maxmind.db.CHMCache;
 import com.maxmind.db.Reader;
 import com.maxmind.geoip2.DatabaseReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.util.ResourceUtils;
 import ua_parser.Parser;
 
@@ -25,10 +27,14 @@ public class LoginNotificationConfig {
 
     @Bean(name="GeoIPCity")
     public DatabaseReader databaseReader() throws IOException {
-        Storage storage = gStorage();
-        Blob blob = storage.get("tline-files", "GeoLite2-City.mmdb");
-        InputStream inputStream = new ByteArrayInputStream(blob.getContent());
-        return new DatabaseReader.Builder(inputStream).build();
+        //uncomment for google cloud
+        ClassLoader cl = this.getClass().getClassLoader();
+        InputStream database = cl.getResourceAsStream("classpath:maxmind/GeoLite2-Country.mmdb");
+        //ClassLoader cl = this.getClass().getClassLoader();
+        //InputStream database = cl.getResourceAsStream("classpath:maxmind/GeoLite2-Country.mmdb");
+        //comment for google cloud
+        //File database = ResourceUtils.getFile("classpath:maxmind/GeoLite2-Country.mmdb");
+        return new DatabaseReader.Builder(database).build();
     }
 
     @Bean(name = "gstorage")
