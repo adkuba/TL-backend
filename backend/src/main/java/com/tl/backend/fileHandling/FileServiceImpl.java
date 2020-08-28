@@ -1,5 +1,6 @@
 package com.tl.backend.fileHandling;
 
+import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
@@ -86,6 +87,11 @@ public class FileServiceImpl implements FileService {
     @Override
     public FileResource changeFileResourceID(FileResource fileResource, String newID) {
         fileResourceRepository.delete(fileResource);
+        BlobId blobId = BlobId.of("tline-files", newID);
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+        Blob blob = gStorage.get("tline-files", fileResource.getId());
+        gStorage.create(blobInfo, blob.getContent());
+        deleteFileResource(fileResource.getId());
         fileResource.setId(newID);
         return fileResourceRepository.save(fileResource);
     }

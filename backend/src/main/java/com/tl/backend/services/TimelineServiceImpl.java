@@ -337,10 +337,14 @@ public class TimelineServiceImpl implements TimelineService {
         if (optionalTimeline.isPresent()){
             Timeline timeline = optionalTimeline.get();
             List<FileResource> fileResources = timeline.getPictures();
-            FileResource firstFile = fileService.changeFileResourceID(fileResources.get(0), timelineID);
-            fileResources.set(0, firstFile);
-            timeline.setPictures(fileResources);
-            timelineRepository.save(timeline);
+            if (fileResources != null){
+                if (fileResources.size() > 0){
+                    FileResource firstFile = fileService.changeFileResourceID(fileResources.get(0), timelineID);
+                    fileResources.set(0, firstFile);
+                    timeline.setPictures(fileResources);
+                    timelineRepository.save(timeline);
+                }
+            }
         }
     }
 
