@@ -65,6 +65,12 @@ public class TimelineController {
         return new ResponseEntity<>(createdTimeline, HttpStatus.CREATED);
     }
 
+    @PostMapping(value = "/firstImage/{id}")
+    public ResponseEntity<?> firstImage(@PathVariable String id){
+        timelineService.firstImage(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @PostMapping(value = "/multiple", consumes = {"application/json"})
     public ResponseEntity<List<TimelineResponse>> createTimelines(@RequestBody @Valid @NotNull List<Timeline> timelines){
         List<Timeline> createdTimelines = new ArrayList<>();

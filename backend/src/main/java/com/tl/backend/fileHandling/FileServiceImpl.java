@@ -25,8 +25,9 @@ public class FileServiceImpl implements FileService {
 
     public FileResource createFileResource(MultipartFile file){
         FileResource fileResource = new FileResource();
-        fileResource.setId(UUID.randomUUID().toString());
         fileResource.setMimeType(file.getContentType());
+        String[] type = fileResource.getMimeType().split("/");
+        fileResource.setId(UUID.randomUUID().toString() + '.' + type[type.length - 1]);
         fileResource.setContentLength(file.getSize());
         return fileResource;
     }
@@ -80,5 +81,12 @@ public class FileServiceImpl implements FileService {
             gStorage.delete("tline-files", resourceId);
             fileResourceRepository.deleteById(resourceId);
         }
+    }
+
+    @Override
+    public FileResource changeFileResourceID(FileResource fileResource, String newID) {
+        fileResourceRepository.delete(fileResource);
+        fileResource.setId(newID);
+        return fileResourceRepository.save(fileResource);
     }
 }

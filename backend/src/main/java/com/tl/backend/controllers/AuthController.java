@@ -298,7 +298,7 @@ public class AuthController {
                 message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(email));
                 message.setSubject("Reset password");
-                message.setContent(appProperties.getMailBeginning() + "Reset your password " + appProperties.getMailMid() + "Click this link <a href='http://localhost:8080/passwordReset/" + token + "'>reset</a> \n\n That's not you? Change password! " + appProperties.getMailEnd(), "text/html");
+                message.setContent(appProperties.getMailBeginning() + "Reset your password " + appProperties.getMailMid() + "Click this link <a href='https://www.tline.site/passwordReset/" + token + "'>reset</a> \n\n That's not you? Change password! " + appProperties.getMailEnd(), "text/html");
                 emailSender.send(message);
                 return ResponseEntity.ok(new MessageResponse("Email send!"));
 

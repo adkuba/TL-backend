@@ -7,4 +7,5 @@ public interface FileService {
     FileResource saveFileResource(String json, String name);
     void deleteFileResource(FileResource resource);
     void deleteFileResource(String resourceId);
+    FileResource changeFileResourceID(FileResource fileResource, String newID);
 }

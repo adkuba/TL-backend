@@ -30,8 +30,6 @@ public class LoginNotificationConfig {
         //uncomment for google cloud
         ClassLoader cl = this.getClass().getClassLoader();
         InputStream database = cl.getResourceAsStream("classpath:maxmind/GeoLite2-Country.mmdb");
-        //ClassLoader cl = this.getClass().getClassLoader();
-        //InputStream database = cl.getResourceAsStream("classpath:maxmind/GeoLite2-Country.mmdb");
         //comment for google cloud
         //File database = ResourceUtils.getFile("classpath:maxmind/GeoLite2-Country.mmdb");
         return new DatabaseReader.Builder(database).build();
