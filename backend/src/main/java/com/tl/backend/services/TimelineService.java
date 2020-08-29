@@ -44,8 +44,6 @@ public interface TimelineService {
 
     void makeActive(List<String> active, String username);
 
-    void firstImage(String timelineID);
-
     List<Timeline> getReported();
 
     List<Timeline> getAllUserTimelines();

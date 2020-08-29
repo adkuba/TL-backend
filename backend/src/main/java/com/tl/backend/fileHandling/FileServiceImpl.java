@@ -45,7 +45,7 @@ public class FileServiceImpl implements FileService {
     @SneakyThrows
     private FileResource setContent(FileResource fileResource, MultipartFile file){
         BlobId blobId = BlobId.of("tline-files", fileResource.getId());
-        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(fileResource.getMimeType()).build();
         gStorage.create(blobInfo, file.getBytes());
         return fileResourceRepository.save(fileResource);
     }
@@ -88,7 +88,7 @@ public class FileServiceImpl implements FileService {
     public FileResource changeFileResourceID(FileResource fileResource, String newID) {
         fileResourceRepository.delete(fileResource);
         BlobId blobId = BlobId.of("tline-files", newID);
-        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(fileResource.getMimeType()).build();
         Blob blob = gStorage.get("tline-files", fileResource.getId());
         gStorage.create(blobInfo, blob.getContent());
         deleteFileResource(fileResource.getId());

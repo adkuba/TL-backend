@@ -332,23 +332,6 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     @Override
-    public void firstImage(String timelineID) {
-        Optional<Timeline> optionalTimeline = timelineRepository.findById(timelineID);
-        if (optionalTimeline.isPresent()){
-            Timeline timeline = optionalTimeline.get();
-            List<FileResource> fileResources = timeline.getPictures();
-            if (fileResources != null){
-                if (fileResources.size() > 0){
-                    FileResource firstFile = fileService.changeFileResourceID(fileResources.get(0), timelineID);
-                    fileResources.set(0, firstFile);
-                    timeline.setPictures(fileResources);
-                    timelineRepository.save(timeline);
-                }
-            }
-        }
-    }
-
-    @Override
     public List<Timeline> getReported() {
         MatchOperation reported = Aggregation.match(Criteria.where("reported").is(true));
         Aggregation aggregation = Aggregation.newAggregation(reported);
