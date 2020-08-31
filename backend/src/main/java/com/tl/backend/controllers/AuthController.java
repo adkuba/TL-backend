@@ -114,8 +114,16 @@ public class AuthController {
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(HttpServletRequest request, @Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) throws StripeException, IOException, GeoIp2Exception {
+        String username;
+        Optional<User> optionalUserEmail = userRepository.findUserByEmail(loginRequest.getUsername());
+        if (optionalUserEmail.isPresent()){
+            username = optionalUserEmail.get().getUsername();
+        } else {
+            username = loginRequest.getUsername();
+        }
+
         //logowanie
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         Date creationTime = new Date();

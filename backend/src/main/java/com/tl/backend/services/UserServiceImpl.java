@@ -129,6 +129,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getUsersByTimelineViews(String timelineID) {
+        MatchOperation matchOperation = Aggregation.match(Criteria.where("myViews").elemMatch(Criteria.where("timelineId").is(timelineID)));
+        Aggregation aggregation = Aggregation.newAggregation(matchOperation);
+        AggregationResults<User> users = mongoTemplate.aggregate(aggregation, "users", User.class);
+        return users.getMappedResults();
+    }
+
+    @Override
     public ResponseEntity<?> deleteByUsername(String username) {
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isPresent()){

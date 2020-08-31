@@ -2,6 +2,8 @@ package com.tl.backend.services;
 
 import com.stripe.exception.StripeException;
 import com.tl.backend.models.Timeline;
+import com.tl.backend.request.HomepageRequest;
+import com.tl.backend.response.TimelineResponse;
 import org.bson.types.ObjectId;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,15 +26,17 @@ public interface TimelineService {
 
     List<Timeline> getUserTimelines(String username);
 
-    List<Timeline> randomTimelines();
+    List<Timeline> randomTimelines(List<String> seenIDS);
 
-    List<Timeline> newTimelines();
+    List<Timeline> newTimelines(List<String> seenIDS);
 
-    List<Timeline> popularTimelines();
+    List<Timeline> popularTimelines(List<String> seenIDS);
 
-    List<Timeline> trendingTimelines();
+    List<Timeline> trendingTimelines(List<String> seenIDS);
 
-    List<Timeline> premiumTimelines();
+    List<TimelineResponse> getHomepageTimelines(HomepageRequest homepageRequest);
+
+    List<Timeline> premiumTimelines(List<String> seenIDS);
 
     void addPremiumView(String timelineId);
 

@@ -2,11 +2,13 @@ package com.tl.backend.controllers;
 
 import com.stripe.exception.StripeException;
 import com.tl.backend.mappers.UserMapper;
+import com.tl.backend.models.InteractionEvent;
 import com.tl.backend.models.Timeline;
 import com.tl.backend.mappers.TimelineMapper;
 import com.tl.backend.models.User;
 import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
+import com.tl.backend.request.HomepageRequest;
 import com.tl.backend.response.TimelineResponse;
 import com.tl.backend.response.UserResponse;
 import com.tl.backend.services.TimelineService;
@@ -25,6 +27,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/timelines")
@@ -155,7 +159,8 @@ public class TimelineController {
         Random r = new Random();
         switch (r.nextInt((3 - 1) + 1) + 1){
             case 1:
-                List<TimelineResponse> popularTimelines = timelineMapper.timelinesResponse(timelineService.popularTimelines());
+                List<String> seen = new ArrayList<>();
+                List<TimelineResponse> popularTimelines = timelineMapper.timelinesResponse(timelineService.popularTimelines(seen));
                 Collections.shuffle(popularTimelines);
                 if (popularTimelines.size() > 5){
                     popularTimelines = popularTimelines.subList(0, 5);
@@ -176,59 +181,9 @@ public class TimelineController {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
-    @GetMapping(value = "/public/homepage")
-    public List<TimelineResponse> homepageTimelines(){
-        List<TimelineResponse> timelineResponses = new ArrayList<>();
-        Random rand = new Random();
-        List<TimelineResponse> randomTimelines = timelineMapper.timelinesResponse(timelineService.randomTimelines());
-        List<TimelineResponse> newTimelines = timelineMapper.timelinesResponse(timelineService.newTimelines());
-        List<TimelineResponse> popularTimelines = timelineMapper.timelinesResponse(timelineService.popularTimelines());
-        List<TimelineResponse> trendingTimelines = timelineMapper.timelinesResponse(timelineService.trendingTimelines());
-        List<TimelineResponse> premiumTimelines = timelineMapper.timelinesResponse(timelineService.premiumTimelines());
-
-        for (TimelineResponse timelineResponse : randomTimelines){
-            timelineResponse.setCategory("SUGGESTED");
-            timelineResponses.add(timelineResponse);
-        }
-        for (int i=0; i<2; i++){
-            if (newTimelines.size() > 0){
-                int randomIndex = rand.nextInt(newTimelines.size());
-                TimelineResponse timelineResponse = newTimelines.get(randomIndex);
-                timelineResponse.setCategory("NEW");
-                timelineResponses.add(timelineResponse);
-                newTimelines.remove(randomIndex);
-            }
-        }
-        for (int i=0; i<2; i++){
-            if (popularTimelines.size() > 0){
-                int randomIndex = rand.nextInt(popularTimelines.size());
-                TimelineResponse timelineResponse = popularTimelines.get(randomIndex);
-                timelineResponse.setCategory("POPULAR");
-                timelineResponses.add(timelineResponse);
-                popularTimelines.remove(randomIndex);
-            }
-        }
-        for (int i=0; i<2; i++){
-            if (trendingTimelines.size() > 0){
-                int randomIndex = rand.nextInt(trendingTimelines.size());
-                TimelineResponse timelineResponse = trendingTimelines.get(randomIndex);
-                timelineResponse.setCategory("TRENDING");
-                timelineResponses.add(timelineResponse);
-                trendingTimelines.remove(randomIndex);
-            }
-        }
-        for (int i=0; i<2; i++){
-            if (premiumTimelines.size() > 0){
-                int randomIndex = rand.nextInt(premiumTimelines.size());
-                TimelineResponse timelineResponse = premiumTimelines.get(randomIndex);
-                timelineResponse.setCategory("PREMIUM");
-                timelineResponses.add(timelineResponse);
-                premiumTimelines.remove(randomIndex);
-            }
-        }
-
-        Collections.shuffle(timelineResponses);
-        return timelineResponses;
+    @PostMapping(value = "/public/homepage")
+    public List<TimelineResponse> homepageTimelines(@Valid @RequestBody HomepageRequest homepageRequest){
+        return timelineService.getHomepageTimelines(homepageRequest);
     }
 
     @GetMapping(value ="/public", produces = MediaType.APPLICATION_JSON_VALUE)

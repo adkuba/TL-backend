@@ -16,6 +16,8 @@ public interface UserService {
 
     List<User> getAllUsers();
 
+    List<User> getUsersByTimelineViews(String timelineID);
+
     ResponseEntity<?> deleteByUsername(String username);
 
     User checkUser(String username);

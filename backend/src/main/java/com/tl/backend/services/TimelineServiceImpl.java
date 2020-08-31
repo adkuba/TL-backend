@@ -6,6 +6,7 @@ import com.tl.backend.config.AppProperties;
 import com.tl.backend.fileHandling.FileResource;
 import com.tl.backend.fileHandling.FileResourceRepository;
 import com.tl.backend.fileHandling.FileServiceImpl;
+import com.tl.backend.mappers.TimelineMapper;
 import com.tl.backend.models.Event;
 import com.tl.backend.models.InteractionEvent;
 import com.tl.backend.models.Timeline;
@@ -13,6 +14,8 @@ import com.tl.backend.models.User;
 import com.tl.backend.repositories.EventRepository;
 import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
+import com.tl.backend.request.HomepageRequest;
+import com.tl.backend.response.TimelineResponse;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +38,8 @@ import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.limit;
 import static org.springframework.data.mongodb.core.aggregation.Aggregation.sort;
@@ -52,10 +57,12 @@ public class TimelineServiceImpl implements TimelineService {
     private final JavaMailSender emailSender;
     private final AppProperties appProperties;
     private final NotificationServiceImpl notificationService;
+    private final TimelineMapper timelineMapper;
 
     @Autowired
-    public TimelineServiceImpl(NotificationServiceImpl notificationService, AppProperties appProperties, JavaMailSender emailSender, UserServiceImpl userService, UserRepository userRepository, FileResourceRepository fileResourceRepository, TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate, EventRepository eventRepository){
+    public TimelineServiceImpl(TimelineMapper timelineMapper, NotificationServiceImpl notificationService, AppProperties appProperties, JavaMailSender emailSender, UserServiceImpl userService, UserRepository userRepository, FileResourceRepository fileResourceRepository, TimelineRepository timelineRepository, FileServiceImpl fileService, MongoTemplate mongoTemplate, EventRepository eventRepository){
         this.timelineRepository = timelineRepository;
+        this.timelineMapper = timelineMapper;
         this.notificationService = notificationService;
         this.appProperties = appProperties;
         this.emailSender = emailSender;
@@ -68,7 +75,7 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     @Override
-    public Timeline getTimelineById(String id, String username) throws StripeException {
+    public Timeline getTimelineById(String id, String username) {
         Optional<Timeline> optionalTimeline = timelineRepository.findById(id);
         optionalTimeline.ifPresent(timeline -> userService.checkSubscription(timeline.getUser().getUsername()));
         optionalTimeline = timelineRepository.findById(id);
@@ -125,6 +132,14 @@ public class TimelineServiceImpl implements TimelineService {
                         user.setLikes(userLikes);
                         userRepository.save(user);
                     }
+                }
+                //need to delete user views
+                List<User> users = userService.getUsersByTimelineViews(timeline.getId());
+                for (User user : users){
+                    List<InteractionEvent> views = user.getMyViews();
+                    views = views.stream().filter(o -> !o.getTimelineId().equals(timeline.getId())).collect(Collectors.toList());
+                    user.setMyViews(views);
+                    userRepository.save(user);
                 }
             }
 
@@ -224,53 +239,157 @@ public class TimelineServiceImpl implements TimelineService {
     }
 
     @Override
-    public List<Timeline> randomTimelines() {
+    public List<Timeline> randomTimelines(List<String> seenIDS) {
         SampleOperation matchStage = Aggregation.sample(5);
         MatchOperation matchOperation = Aggregation.match(Criteria.where("user").exists(true));
         MatchOperation active = Aggregation.match(Criteria.where("active").is(true));
-        Aggregation aggregation = Aggregation.newAggregation(matchStage, matchOperation, active);
+        MatchOperation seen = Aggregation.match(Criteria.where("_id").nin(seenIDS));
+        Aggregation aggregation = Aggregation.newAggregation(matchStage, matchOperation, active, seen);
         AggregationResults<Timeline> timelines = mongoTemplate.aggregate(aggregation, "timelines", Timeline.class);
         return timelines.getMappedResults();
     }
 
     @Override
-    public List<Timeline> newTimelines() {
+    public List<Timeline> newTimelines(List<String> seenIDS) {
         SortOperation sortByDate = sort(Sort.by(Sort.Direction.ASC, "creationDate"));
         LimitOperation limitTo = limit(10);
         MatchOperation matchOperation = Aggregation.match(Criteria.where("user").exists(true));
         MatchOperation active = Aggregation.match(Criteria.where("active").is(true));
-        Aggregation aggregation = Aggregation.newAggregation(sortByDate, limitTo, matchOperation, active);
+        MatchOperation seen = Aggregation.match(Criteria.where("_id").nin(seenIDS));
+        Aggregation aggregation = Aggregation.newAggregation(sortByDate, limitTo, matchOperation, active, seen);
         AggregationResults<Timeline> timelines = mongoTemplate.aggregate(aggregation, "timelines", Timeline.class);
         return timelines.getMappedResults();
     }
 
     @Override
-    public List<Timeline> popularTimelines() {
+    public List<Timeline> popularTimelines(List<String> seenIDS) {
         SortOperation sortByViews = sort(Sort.by(Sort.Direction.DESC, "views"));
         LimitOperation limitTo = limit(10);
         MatchOperation matchOperation = Aggregation.match(Criteria.where("user").exists(true));
         MatchOperation active = Aggregation.match(Criteria.where("active").is(true));
-        Aggregation aggregation = Aggregation.newAggregation(sortByViews, limitTo, matchOperation, active);
+        MatchOperation seen = Aggregation.match(Criteria.where("_id").nin(seenIDS));
+        Aggregation aggregation = Aggregation.newAggregation(sortByViews, limitTo, matchOperation, active, seen);
         AggregationResults<Timeline> timelines = mongoTemplate.aggregate(aggregation, "timelines", Timeline.class);
         return timelines.getMappedResults();
     }
 
     @Override
-    public List<Timeline> trendingTimelines() {
+    public List<Timeline> trendingTimelines(List<String> seenIDS) {
         SortOperation sortByViews = sort(Sort.by(Sort.Direction.DESC, "trendingViews"));
         LimitOperation limitTo = limit(10);
         MatchOperation matchOperation = Aggregation.match(Criteria.where("user").exists(true));
         MatchOperation active = Aggregation.match(Criteria.where("active").is(true));
-        Aggregation aggregation = Aggregation.newAggregation(sortByViews, limitTo, matchOperation, active);
+        MatchOperation seen = Aggregation.match(Criteria.where("_id").nin(seenIDS));
+        Aggregation aggregation = Aggregation.newAggregation(sortByViews, limitTo, matchOperation, active, seen);
         AggregationResults<Timeline> timelines = mongoTemplate.aggregate(aggregation, "timelines", Timeline.class);
         return timelines.getMappedResults();
     }
 
     @Override
-    public List<Timeline> premiumTimelines() {
+    public List<TimelineResponse> getHomepageTimelines(HomepageRequest homepageRequest) {
+        List<String> seenIDS = null;
+        if (homepageRequest.getUsername() == null){
+            //timelines for non logged-in user
+            seenIDS = homepageRequest.getTimelinesIDS();
+        } else {
+            //timelines for logged-in users
+            Optional<User> optionalUser = userRepository.findByUsername(homepageRequest.getUsername());
+            if (optionalUser.isPresent()){
+                List<String> userSeen = optionalUser.get().getMyViews().stream().map(InteractionEvent::getTimelineId).collect(Collectors.toList());
+                seenIDS = Stream.concat(homepageRequest.getTimelinesIDS().stream(), userSeen.stream()).collect(Collectors.toList());
+            }
+        }
+        assert seenIDS != null;
+        List<TimelineResponse> timelineResponses = new ArrayList<>();
+        Random rand = new Random();
+        List<TimelineResponse> randomTimelines = timelineMapper.timelinesResponse(randomTimelines(seenIDS));
+
+        List<String> added = new ArrayList<>();
+        for (TimelineResponse timelineResponse : randomTimelines){
+            timelineResponse.setCategory("SUGGESTED");
+            timelineResponses.add(timelineResponse);
+            added.add(timelineResponse.getId());
+        }
+
+        seenIDS = Stream.concat(seenIDS.stream(), added.stream()).collect(Collectors.toList());
+        added.clear();
+        List<TimelineResponse> newTimelines = timelineMapper.timelinesResponse(newTimelines(seenIDS));
+
+        for (int i=0; i<2; i++){
+            if (newTimelines.size() > 0){
+                int randomIndex = rand.nextInt(newTimelines.size());
+                TimelineResponse timelineResponse = newTimelines.get(randomIndex);
+                timelineResponse.setCategory("NEW");
+                timelineResponses.add(timelineResponse);
+                newTimelines.remove(randomIndex);
+                added.add(timelineResponse.getId());
+            }
+        }
+
+        seenIDS = Stream.concat(seenIDS.stream(), added.stream()).collect(Collectors.toList());
+        added.clear();
+        List<TimelineResponse> popularTimelines = timelineMapper.timelinesResponse(popularTimelines(seenIDS));
+
+        for (int i=0; i<2; i++){
+            if (popularTimelines.size() > 0){
+                int randomIndex = rand.nextInt(popularTimelines.size());
+                TimelineResponse timelineResponse = popularTimelines.get(randomIndex);
+                timelineResponse.setCategory("POPULAR");
+                timelineResponses.add(timelineResponse);
+                popularTimelines.remove(randomIndex);
+                added.add(timelineResponse.getId());
+            }
+        }
+
+        seenIDS = Stream.concat(seenIDS.stream(), added.stream()).collect(Collectors.toList());
+        added.clear();
+        List<TimelineResponse> trendingTimelines = timelineMapper.timelinesResponse(trendingTimelines(seenIDS));
+
+        for (int i=0; i<2; i++){
+            if (trendingTimelines.size() > 0){
+                int randomIndex = rand.nextInt(trendingTimelines.size());
+                TimelineResponse timelineResponse = trendingTimelines.get(randomIndex);
+                timelineResponse.setCategory("TRENDING");
+                timelineResponses.add(timelineResponse);
+                trendingTimelines.remove(randomIndex);
+                added.add(timelineResponse.getId());
+            }
+        }
+
+        seenIDS = Stream.concat(seenIDS.stream(), added.stream()).collect(Collectors.toList());
+        added.clear();
+        List<TimelineResponse> premiumTimelines = timelineMapper.timelinesResponse(premiumTimelines(seenIDS));
+
+        for (int i=0; i<2; i++){
+            if (premiumTimelines.size() > 0){
+                int randomIndex = rand.nextInt(premiumTimelines.size());
+                TimelineResponse timelineResponse = premiumTimelines.get(randomIndex);
+                timelineResponse.setCategory("PREMIUM");
+                timelineResponses.add(timelineResponse);
+                premiumTimelines.remove(randomIndex);
+            }
+        }
+
+        if (timelineResponses.size() == 0){
+            int randomIndex = rand.nextInt(seenIDS.size());
+            Optional<Timeline> optionalTimeline = timelineRepository.findById(seenIDS.get(randomIndex));
+            if (optionalTimeline.isPresent()){
+                TimelineResponse timelineResponse = timelineMapper.timelineResponse(optionalTimeline.get());
+                timelineResponse.setCategory("READ AGAIN");
+                timelineResponses.add(timelineResponse);
+            }
+        }
+
+        Collections.shuffle(timelineResponses);
+        return timelineResponses;
+    }
+
+    @Override
+    public List<Timeline> premiumTimelines(List<String> seenIDS) {
         MatchOperation active = Aggregation.match(Criteria.where("active").is(true));
         MatchOperation premium = Aggregation.match(Criteria.where("premium").is(true));
-        Aggregation aggregation = Aggregation.newAggregation(premium, active);
+        MatchOperation seen = Aggregation.match(Criteria.where("_id").nin(seenIDS));
+        Aggregation aggregation = Aggregation.newAggregation(premium, active, seen);
         AggregationResults<Timeline> timelines = mongoTemplate.aggregate(aggregation, "timelines", Timeline.class);
         return timelines.getMappedResults();
     }
@@ -393,7 +512,12 @@ public class TimelineServiceImpl implements TimelineService {
         //searched text is in username
         List<User> users = mongoTemplate.find(query, User.class);
         for (User user : users){
-            timelines.addAll(getUserTimelines(user.getUsername()));
+            for (Timeline userTimeline : getUserTimelines(user.getUsername())){
+                //check if already is in list
+                if (timelines.stream().noneMatch(o -> o.getId().equals(userTimeline.getId()))){
+                    timelines.add(userTimeline);
+                }
+            }
         }
 
         return timelines;
