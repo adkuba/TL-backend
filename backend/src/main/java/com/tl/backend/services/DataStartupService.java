@@ -60,6 +60,7 @@ public class DataStartupService {
 
         TextIndexDefinition userTextIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
                 .onField("username")
+                .onField("fullName")
                 .build();
 
         mongoTemplate.indexOps(User.class).ensureIndex(userTextIndex);

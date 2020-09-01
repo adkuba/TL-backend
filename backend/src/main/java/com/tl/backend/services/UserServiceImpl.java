@@ -13,6 +13,7 @@ import com.tl.backend.repositories.StatisticsRepository;
 import com.tl.backend.repositories.TimelineRepository;
 import com.tl.backend.repositories.UserRepository;
 import com.tl.backend.request.SubscriptionRequest;
+import com.tl.backend.response.MessageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -215,6 +216,9 @@ public class UserServiceImpl implements UserService {
         Optional<User> userOptional = userRepository.findByUsername(username);
         if(userOptional.isPresent()){
             User user = userOptional.get();
+            if (userRepository.findUserByEmail(email).isPresent()){
+                return new ResponseEntity<>("Error: Email is already in use!", HttpStatus.BAD_REQUEST);
+            }
             user.setEmail(email);
             try {
                 Customer customer = Customer.retrieve(user.getStripeID());
