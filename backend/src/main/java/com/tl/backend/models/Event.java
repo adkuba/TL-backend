@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class Event {
     private String title;
     private String timelineId;
     private String description;
-    private List<FileResource> pictures;
+    private List<FileResource> pictures = new ArrayList<>();
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;

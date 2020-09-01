@@ -32,7 +32,7 @@ public class Timeline {
     private String description;
     private String descriptionTitle;
     private String eventId;
-    private List<FileResource> pictures;
+    private List<FileResource> pictures = new ArrayList<>();
     private Map<LocalDate, Map<String, Long>> viewsDetails = new HashMap<>();
     private long views = 0;
     private long trendingViews = 0;
