@@ -1,27 +1,18 @@
-# TL-backend
-Backend do strony timeline.
+# Table of contents
+* [About](#about)
+* [Localhost](#localhost)
+* [Wiki](#wiki)
 
-## Uruchomienie
-Musi dzialac mongodb <code>sudo systemctl start mongod</code> uwaga przy pierwszym uruchomieniu trzeba stworzyc usera admin. Do zapytan REST uzywac Postmana, do przegladania bazy danych Mongodb Compass, glowny projekt w Intellij.
+## About
+What have I learned?
+* How to create backend application in **Spring Boot, Java**
+* Working with **MongoDB**
+* Deploying to **Google App Engine** on custom domain <br>
 
-## Co to jest?
-Strona umozliwiajaca stworzenie wlasnego portfolio, na podstawie zrealizowanych projektow. <br>
+To learn more visit frontend repository. Backend is avaiable on <code>www.api.tline.site</code>, waiting time may be longer as I'm running on cheaper server due to lack of founding.
 
-Istniejące rozwiązania:
-- kreatory stron takie jak WordPress - strony dostosowane do twoich potrzeb
-- kreatory osi czasu - do robienia timeline np przy projektach itd.
-- portale z ogłoszeniami pracy linkedin 
+## Localhost
+On default project uses Atlas Mongodb, you can change configuration to run all in localhost. If you use localhost remember to run mongodb <code>sudo systemctl start mongod</code> Also remember to remove Google Cloud App Engine configuration, as project on default deploys to this platform.
 
-Główne cechy mojej strony:
-- oparta na jednym szablonie dla wszystkich - oś czasu na której dodajemy projekty.
-- w punktach które dodajemy na oś może być JEDNA dodatkowa oś czasu - sa to szczegóły w danym projekcie
-- unifikacja, to co wyróżnia strony użytkowników to tylko treść - czyli nasze zrealizowane projekty
-- wyszukiwarka po kategoriach np. informatyka, zdjęcia
-
-Wyróżniki od istniejących rozwiązań
-- Kreatory stron - u mnie będzie unifikacja strony - przejrzystość
-- Kreatory osi czasu - u mnie focus na ładnie wyglądające portfolio i realizowane projekty
-- ogłoszenia pracy - u mnie nie ma ogłoszeń tylko w klarowny sposób prezentują się osoby
-
-Dodatkowe pomysły:
-- możliwość tworzenia backupu podawanych stron?
+## Wiki
+Read wiki page to learn more about backend functionality.
