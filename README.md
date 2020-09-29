@@ -10,7 +10,7 @@
 * Working with **MongoDB** and **Docker**
 * Deploying to **Google App Engine** on custom domain with **SSL** or to Digital Ocean **virtual machine** with SSL<br>
 
-To learn more visit [frontend repository](https://github.com/adkuba/TL-frontend). Backend is avaiable on <code>www.api.tline.site</code>
+To learn more visit [frontend repository](https://github.com/adkuba/TL-frontend). Backend is avaiable on <code>https://www.api.tline.site</code>
 
 ![meta](https://storage.googleapis.com/tline-files/meta.png)
 
