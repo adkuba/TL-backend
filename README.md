@@ -1,3 +1,7 @@
+# TL-backend
+UWAGA trzeb ustawić odpowiednigo maila we wszystkich serwisach wsysłających maile!.
+Zrobić refactor na prywatnym forku.
+
 # Table of Contents
 * [What I've learned](#what-Ive-learned)
 * [Localhost](#localhost)
