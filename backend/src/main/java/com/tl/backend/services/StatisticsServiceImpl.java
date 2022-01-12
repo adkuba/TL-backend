@@ -103,8 +103,8 @@ public class StatisticsServiceImpl implements StatisticsService {
             User user = optionalUser.get();
             try {
                 MimeMessage message = emailSender.createMimeMessage();
-                message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
-                message.addRecipient(Message.RecipientType.TO, new InternetAddress("admin@tline.site"));
+                message.setFrom(new InternetAddress("quicpos@gmail.com", "Tline"));
+                message.addRecipient(Message.RecipientType.TO, new InternetAddress("quicpos@gmail.com"));
                 message.setSubject("Review");
                 message.setContent(appProperties.getMailBeginning() + "Review " + appProperties.getMailMid() + review.getOpinion() + "\n\n By: " + review.getUsername() + " " + user.getEmail() + appProperties.getMailEnd(), "text/html");
                 emailSender.send(message);

@@ -259,7 +259,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
             try {
                 MimeMessage message = emailSender.createMimeMessage();
-                message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                message.setFrom(new InternetAddress("quicpos@gmail.com", "Tline"));
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
                 message.setSubject("Password changed");
                 message.setContent(appProperties.getMailBeginning() + "New password " + appProperties.getMailMid() + "Your password has been changed." + "\n\n You didn't changed your password? Reset it! " + appProperties.getMailEnd(), "text/html");
@@ -327,7 +327,7 @@ public class UserServiceImpl implements UserService {
 
             try {
                 MimeMessage message = emailSender.createMimeMessage();
-                message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                message.setFrom(new InternetAddress("quicpos@gmail.com", "Tline"));
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
                 message.setSubject("Subscription");
                 message.setContent(appProperties.getMailBeginning() + "Premium " + appProperties.getMailMid() + "You are now a premium user thank you!\n\n" + "Name: " + subscriptionRequest.getFullName() + "\nPrice: 3$\nCard: " + user.getCard() + "\n\n You don't recognize this action? Reset password! " + appProperties.getMailEnd(), "text/html");
@@ -403,7 +403,7 @@ public class UserServiceImpl implements UserService {
             userRepository.save(user);
             try {
                 MimeMessage message = emailSender.createMimeMessage();
-                message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                message.setFrom(new InternetAddress("quicpos@gmail.com", "Tline"));
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
                 message.setSubject("Subscription");
                 message.setContent(appProperties.getMailBeginning() + "Premium canceled " + appProperties.getMailMid() + "Your subscription has been canceled, premium will end at " + user.getSubscriptionEnd().toString() + "\n\n You don't recognize this action? Reset password! " + appProperties.getMailEnd(), "text/html");
@@ -440,7 +440,7 @@ public class UserServiceImpl implements UserService {
             user.setBlocked(true);
             try {
                 MimeMessage message = emailSender.createMimeMessage();
-                message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                message.setFrom(new InternetAddress("quicpos@gmail.com", "Tline"));
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
                 message.setSubject("Blocked");
                 message.setContent(appProperties.getMailBeginning() + "Info " + appProperties.getMailMid() + "Your account has been blocked and your timelines have been deleted. \n\n Message: \n" + reason + "\n\n You can reply to this email. " + appProperties.getMailEnd(), "text/html");
@@ -460,7 +460,7 @@ public class UserServiceImpl implements UserService {
             user.setBlocked(false);
             try {
                 MimeMessage message = emailSender.createMimeMessage();
-                message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                message.setFrom(new InternetAddress("quicpos@gmail.com", "Tline"));
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
                 message.setSubject("Unblocked");
                 message.setContent(appProperties.getMailBeginning() + "Info " + appProperties.getMailMid() + "Your account has been unblocked" + appProperties.getMailEnd(), "text/html");

@@ -260,7 +260,7 @@ public class AuthController {
         //email
         try {
             MimeMessage message = emailSender.createMimeMessage();
-            message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+            message.setFrom(new InternetAddress("quicpos@gmail.com", "Tline"));
             message.addRecipient(Message.RecipientType.TO, new InternetAddress(signUpRequest.getEmail()));
             message.setSubject("Welcome");
             message.setContent(appProperties.getMailBeginning() + "Welcome " + appProperties.getMailMid() + "Thank you for creating account!\n\n User: " + user.getUsername() + " start discover new timelines on our homepage. \n\n That's not you? Take control of this account and reset password!" + appProperties.getMailEnd() , "text/html");
@@ -303,7 +303,7 @@ public class AuthController {
 
             try {
                 MimeMessage message = emailSender.createMimeMessage();
-                message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                message.setFrom(new InternetAddress("quicpos@gmail.com", "Tline"));
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(email));
                 message.setSubject("Reset password");
                 message.setContent(appProperties.getMailBeginning() + "Reset your password " + appProperties.getMailMid() + "Click this link <a href='https://www.tline.site/passwordReset/" + token + "'>reset</a> \n\n That's not you? Change password! " + appProperties.getMailEnd(), "text/html");
@@ -330,7 +330,7 @@ public class AuthController {
                 userRepository.save(user);
                 try {
                     MimeMessage message = emailSender.createMimeMessage();
-                    message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                    message.setFrom(new InternetAddress("quicpos@gmail.com", "Tline"));
                     message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
                     message.setSubject("Password changed");
                     message.setContent(appProperties.getMailBeginning() + "New password " + appProperties.getMailMid() + "Your password has been changed." + "\n\n You didn't changed your password? Reset it! " + appProperties.getMailEnd(), "text/html");

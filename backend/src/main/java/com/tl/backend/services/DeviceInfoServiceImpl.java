@@ -74,7 +74,7 @@ public class DeviceInfoServiceImpl implements DeviceInfoService {
                     if (optionalUser.isPresent()){
                         User user = optionalUser.get();
                         MimeMessage message = emailSender.createMimeMessage();
-                        message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                        message.setFrom(new InternetAddress("quicpos@gmail.com", "Tline"));
                         message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
                         message.setSubject("New login");
                         message.setContent(appProperties.getMailBeginning() + "Detected new login! " + appProperties.getMailMid() + "Device: " + deviceDetails + "\n Location: " + location + "\n Locale: " + request.getLocale().toString() + "\n\n You don't recognize this login? Reset password! " + appProperties.getMailEnd(), "text/html");

@@ -45,6 +45,6 @@ public class LoginNotificationConfig {
         InputStream inputStream = cl.getResourceAsStream("classpath:google/authentication.json");
         assert inputStream != null;
         Credentials credentials = GoogleCredentials.fromStream(inputStream);
-        return StorageOptions.newBuilder().setProjectId("tline-files").setCredentials(credentials).build().getService();
+        return StorageOptions.newBuilder().setProjectId("quicpos").setCredentials(credentials).build().getService();
     }
 }

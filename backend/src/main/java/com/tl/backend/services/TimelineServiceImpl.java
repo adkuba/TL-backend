@@ -172,7 +172,7 @@ public class TimelineServiceImpl implements TimelineService {
                 if (reason != null){
                     try {
                         MimeMessage message = emailSender.createMimeMessage();
-                        message.setFrom(new InternetAddress("admin@tline.site", "Tline"));
+                        message.setFrom(new InternetAddress("quicpos@gmail.com", "Tline"));
                         message.addRecipient(Message.RecipientType.TO, new InternetAddress(user.getEmail()));
                         message.setSubject("Timeline");
                         message.setContent(appProperties.getMailBeginning() + "Deleted " + appProperties.getMailMid() + "Your timeline has been deleted. \n\n Message: \n" + reason + "\n\n You can reply to this email. " + appProperties.getMailEnd(), "text/html");
